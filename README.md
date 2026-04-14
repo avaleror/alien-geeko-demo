@@ -26,12 +26,12 @@ No persistent storage. No external dependencies at runtime. Just a service accou
 
 | Role | Hardware | OS | Provisioning |
 |---|---|---|---|
-| Mission Control | x86 NUC | Any Linux | Manual — runs k3s + Rancher + Fleet + Elemental |
+| Mission Control | x86 NUC | SL Micro 6.2 | Manual — runs k3s + Rancher + Fleet + Elemental |
 | Vessel Alpha | Raspberry Pi 4 | SL Micro 6.2 | EIB (Edge Image Builder) |
-| Vessel Beta | x86 NUC | Any Linux | Elemental (phone-home) |
+| Vessel Beta | x86 NUC | SL Micro 6.2 | Elemental (phone-home) |
 | Vessel Delta-k3s | Raspberry Pi 5 | openSUSE Tumbleweed | Rancher Import + k3s |
 | Vessel Delta-RKE2 | Raspberry Pi 5 | openSUSE Tumbleweed | Rancher Import + RKE2 |
-| Standby | x86 Spare NUC | Any | EIB or Import |
+| Standby | x86 Spare NUC | SL Micro 6.2 | EIB or Import |
 
 > **Note:** Raspberry Pi 5 (BCM2712) is NOT supported in SL Micro 6.2. Pi 5 boards run openSUSE Tumbleweed with k3s or RKE2 and are imported into Rancher. SL Micro 6.3 (planned late 2026) will add Pi 5 support.
 
@@ -321,7 +321,7 @@ diskutil eject /dev/diskN
 
 ## Elemental — Vessel Beta (x86 NUC)
 
-Vessel Beta is an x86 NUC that uses Elemental for phone-home onboarding — no manual cluster setup needed.
+Vessel Beta is an x86 NUC running SL Micro 6.2 that uses Elemental for phone-home onboarding — no manual cluster setup needed.
 
 1. Boot the NUC from an Elemental-enabled ISO or USB image
 2. The node calls back to Rancher automatically on first boot

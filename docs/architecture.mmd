@@ -1,45 +1,50 @@
 flowchart TD
-    GH["📦 GitHub\nalien-geeko-demo\nfleet.yaml + overlays"]
+    GH["📦 GitHub\nalien-geeko-demo"]
 
-    subgraph MC["🖥️ Mission Control — x86 NUC"]
-        Rancher["Rancher Prime"]
-        Fleet["Fleet"]
-        Elemental["Elemental"]
-        EIB["Edge Image Builder"]
-        Rancher --> Fleet
-        Rancher --> Elemental
-        Rancher --> EIB
+    subgraph MC["🖥️  MISSION CONTROL — x86 NUC // SL Micro 6.2"]
+        RP["Rancher Prime"]
+        FL["Fleet"]
+        EL["Elemental"]
+        EB["Edge Image Builder"]
     end
 
-    GH -->|"pull (GitOps)"| Fleet
+    GH -->|"GitOps pull"| FL
 
-    EIB -->|"raw image\ndd to SD card"| VA
-    Elemental -->|"phone-home\nassign cluster"| VB
-    VDK -->|"kubectl apply\nimport manifest"| Rancher
-    VDR -->|"kubectl apply\nimport manifest"| Rancher
-
-    Fleet -->|"demo=true\nedge-type=pi-cluster\nVESSEL-ALPHA overlay"| VA
-    Fleet -->|"demo=true\nedge-type=x86-elemental\nVESSEL-BETA overlay"| VB
-    Fleet -->|"demo=true\nedge-type=pi5-k3s\nVESSEL-DELTA-K3S overlay"| VDK
-    Fleet -->|"demo=true\nedge-type=pi5-rke2\nVESSEL-DELTA-RKE2 overlay"| VDR
+    RP --- FL
+    RP --- EL
+    RP --- EB
 
     VA["🍓 Vessel Alpha\nRaspberry Pi 4\nSL Micro 6.2 // k3s"]
-    VB["🖥️ Vessel Beta\nx86 NUC\nAny Linux // Elemental"]
+    VB["🖥️  Vessel Beta\nx86 NUC\nSL Micro 6.2 // Elemental"]
     VDK["🍓 Vessel Delta-k3s\nRaspberry Pi 5\nopenSUSE Tumbleweed // k3s"]
     VDR["🍓 Vessel Delta-RKE2\nRaspberry Pi 5\nopenSUSE Tumbleweed // RKE2"]
 
-    VA --> APP1["alien-geeko\nlive cluster vitals"]
-    VB --> APP2["alien-geeko\nlive cluster vitals"]
-    VDK --> APP3["alien-geeko\nlive cluster vitals"]
-    VDR --> APP4["alien-geeko\nlive cluster vitals"]
+    EB -->|"dd to SD card"| VA
+    EL -->|"phone-home"| VB
+    VDK -->|"import manifest"| RP
+    VDR -->|"import manifest"| RP
+
+    FL -->|"demo=true\nedge-type=pi-cluster"| VA
+    FL -->|"demo=true\nedge-type=x86-elemental"| VB
+    FL -->|"demo=true\nedge-type=pi5-k3s"| VDK
+    FL -->|"demo=true\nedge-type=pi5-rke2"| VDR
+
+    VA --> GA["👾 alien-geeko"]
+    VB --> GB["👾 alien-geeko"]
+    VDK --> GK["👾 alien-geeko"]
+    VDR --> GR["👾 alien-geeko"]
 
     style MC fill:#0A1F14,stroke:#4A8A28,color:#73BE44
     style GH fill:#0D2318,stroke:#4A8A28,color:#E8F5E0
+    style RP fill:#1E4A10,stroke:#73BE44,color:#73BE44
+    style FL fill:#0D2318,stroke:#4A8A28,color:#E8F5E0
+    style EL fill:#0D2318,stroke:#4A8A28,color:#E8F5E0
+    style EB fill:#0D2318,stroke:#4A8A28,color:#E8F5E0
     style VA fill:#0D2318,stroke:#17B3A3,color:#E8F5E0
     style VB fill:#0D2318,stroke:#17B3A3,color:#E8F5E0
     style VDK fill:#0D2318,stroke:#17B3A3,color:#E8F5E0
     style VDR fill:#0D2318,stroke:#17B3A3,color:#E8F5E0
-    style APP1 fill:#0A1F14,stroke:#4A8A28,color:#73BE44
-    style APP2 fill:#0A1F14,stroke:#4A8A28,color:#73BE44
-    style APP3 fill:#0A1F14,stroke:#4A8A28,color:#73BE44
-    style APP4 fill:#0A1F14,stroke:#4A8A28,color:#73BE44
+    style GA fill:#0A1F14,stroke:#73BE44,color:#73BE44
+    style GB fill:#0A1F14,stroke:#73BE44,color:#73BE44
+    style GK fill:#0A1F14,stroke:#73BE44,color:#73BE44
+    style GR fill:#0A1F14,stroke:#73BE44,color:#73BE44
