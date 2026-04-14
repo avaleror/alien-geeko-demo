@@ -1,0 +1,13 @@
+# Copyright 2025 SUSE LLC
+# Licensed under the Apache License, Version 2.0
+#
+# CLUSTER_NAME is the display name shown in the Nostromo terminal UI.
+# Override this value per cluster via the Kustomize overlays in overlays/.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alien-geeko-config
+  namespace: alien-geeko
+data:
+  CLUSTER_NAME: "EDGE-CLUSTER"

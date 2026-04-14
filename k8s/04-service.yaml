@@ -1,0 +1,29 @@
+# Copyright 2025 SUSE LLC
+# Licensed under the Apache License, Version 2.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alien-geeko
+  namespace: alien-geeko
+spec:
+  selector:
+    app: alien-geeko
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 3000
+      nodePort: 30080   # Access: http://<NODE_IP>:30080
+
+# --- LoadBalancer (MetalLB) alternative ---
+# Uncomment below and remove NodePort block above for MetalLB clusters.
+#
+# spec:
+#   selector:
+#     app: alien-geeko
+#   type: LoadBalancer
+#   ports:
+#     - port: 80
+#       targetPort: 3000
+#   annotations:
+#     metallb.universe.tf/address-pool: default

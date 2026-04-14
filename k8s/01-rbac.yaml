@@ -1,0 +1,32 @@
+# Copyright 2025 SUSE LLC
+# Licensed under the Apache License, Version 2.0
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alien-geeko
+  namespace: alien-geeko
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: alien-geeko-reader
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+  - nonResourceURLs: ["/version"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: alien-geeko-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: alien-geeko-reader
+subjects:
+  - kind: ServiceAccount
+    name: alien-geeko
+    namespace: alien-geeko   # Must match the actual deployment namespace

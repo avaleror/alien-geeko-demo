@@ -1,0 +1,14 @@
+# Copyright 2025 SUSE LLC
+# Licensed under the Apache License, Version 2.0
+#
+# Base overlay — references all resources in k8s/.
+# Used as the parent for per-cluster overlays.
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../k8s/00-namespace.yaml
+  - ../k8s/01-rbac.yaml
+  - ../k8s/02-deployment.yaml
+  - ../k8s/03-configmap.yaml
+  - ../k8s/04-service.yaml
