@@ -68,6 +68,12 @@ alien-geeko/
 
 ---
 
+## Architecture
+
+![Mission Control Architecture](docs/architecture.png)
+
+---
+
 ## App Architecture
 
 The app is a single Node.js process. No init containers, no sidecar, no volume mounts for data.

@@ -1,0 +1,45 @@
+flowchart TD
+    GH["📦 GitHub\nalien-geeko-demo\nfleet.yaml + overlays"]
+
+    subgraph MC["🖥️ Mission Control — x86 NUC"]
+        Rancher["Rancher Prime"]
+        Fleet["Fleet"]
+        Elemental["Elemental"]
+        EIB["Edge Image Builder"]
+        Rancher --> Fleet
+        Rancher --> Elemental
+        Rancher --> EIB
+    end
+
+    GH -->|"pull (GitOps)"| Fleet
+
+    EIB -->|"raw image\ndd to SD card"| VA
+    Elemental -->|"phone-home\nassign cluster"| VB
+    VDK -->|"kubectl apply\nimport manifest"| Rancher
+    VDR -->|"kubectl apply\nimport manifest"| Rancher
+
+    Fleet -->|"demo=true\nedge-type=pi-cluster\nVESSEL-ALPHA overlay"| VA
+    Fleet -->|"demo=true\nedge-type=x86-elemental\nVESSEL-BETA overlay"| VB
+    Fleet -->|"demo=true\nedge-type=pi5-k3s\nVESSEL-DELTA-K3S overlay"| VDK
+    Fleet -->|"demo=true\nedge-type=pi5-rke2\nVESSEL-DELTA-RKE2 overlay"| VDR
+
+    VA["🍓 Vessel Alpha\nRaspberry Pi 4\nSL Micro 6.2 // k3s"]
+    VB["🖥️ Vessel Beta\nx86 NUC\nAny Linux // Elemental"]
+    VDK["🍓 Vessel Delta-k3s\nRaspberry Pi 5\nopenSUSE Tumbleweed // k3s"]
+    VDR["🍓 Vessel Delta-RKE2\nRaspberry Pi 5\nopenSUSE Tumbleweed // RKE2"]
+
+    VA --> APP1["alien-geeko\nlive cluster vitals"]
+    VB --> APP2["alien-geeko\nlive cluster vitals"]
+    VDK --> APP3["alien-geeko\nlive cluster vitals"]
+    VDR --> APP4["alien-geeko\nlive cluster vitals"]
+
+    style MC fill:#0A1F14,stroke:#4A8A28,color:#73BE44
+    style GH fill:#0D2318,stroke:#4A8A28,color:#E8F5E0
+    style VA fill:#0D2318,stroke:#17B3A3,color:#E8F5E0
+    style VB fill:#0D2318,stroke:#17B3A3,color:#E8F5E0
+    style VDK fill:#0D2318,stroke:#17B3A3,color:#E8F5E0
+    style VDR fill:#0D2318,stroke:#17B3A3,color:#E8F5E0
+    style APP1 fill:#0A1F14,stroke:#4A8A28,color:#73BE44
+    style APP2 fill:#0A1F14,stroke:#4A8A28,color:#73BE44
+    style APP3 fill:#0A1F14,stroke:#4A8A28,color:#73BE44
+    style APP4 fill:#0A1F14,stroke:#4A8A28,color:#73BE44
