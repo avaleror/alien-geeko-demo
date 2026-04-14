@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MISSION CONTROL // SUSE Edge 3.5</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --bg-deep:   #050F0A;
+      --bg-mid:    #0A1F14;
+      --bg-panel:  #0D2318;
+      --suse:      #73BE44;
+      --suse-dark: #4A8A28;
+      --teal:      #17B3A3;
+      --amber:     #FFB000;
+      --red:       #FF3D2E;
+      --text-pri:  #E8F5E0;
+      --text-sec:  #8DB890;
+      --border:    #1E4A10;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--text-pri);
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* CRT scanlines overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* CRT vignette */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-mid);
+      font-size: 11px;
+      color: var(--text-sec);
+      letter-spacing: 0.1em;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar .id { color: var(--suse); }
+    .topbar .status { color: var(--amber); }
+    .topbar .status::before { content: '● '; }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 80px 24px 60px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-label {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--text-sec);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      color: var(--suse);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-shadow: 0 0 40px rgba(115,190,68,0.4);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .hero h2 {
+      font-size: clamp(13px, 2vw, 17px);
+      color: var(--teal);
+      letter-spacing: 0.2em;
+      font-weight: normal;
+      margin-bottom: 32px;
+    }
+
+    .hero p {
+      max-width: 600px;
+      margin: 0 auto 40px;
+      color: var(--text-sec);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      border: 1px solid var(--suse);
+      color: var(--suse);
+      padding: 10px 28px;
+      text-decoration: none;
+      letter-spacing: 0.15em;
+      font-size: 12px;
+      text-transform: uppercase;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .hero-cta:hover {
+      background: var(--suse);
+      color: var(--bg-deep);
+    }
+
+    .hero-divider {
+      margin-top: 60px;
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Section ── */
+    section {
+      padding: 60px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      color: var(--suse-dark);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    section h3 {
+      font-size: 20px;
+      color: var(--suse);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    section p {
+      color: var(--text-sec);
+      margin-bottom: 16px;
+      max-width: 700px;
+    }
+
+    /* ── Fleet table ── */
+    .fleet-grid {
+      display: grid;
+      gap: 2px;
+      margin-top: 8px;
+    }
+
+    .fleet-row {
+      display: grid;
+      grid-template-columns: 220px 1fr 1fr;
+      gap: 2px;
+    }
+
+    .fleet-row.header .cell {
+      background: var(--border);
+      color: var(--suse);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .cell {
+      background: var(--bg-panel);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text-pri);
+    }
+
+    .cell.vessel { color: var(--teal); }
+    .cell.method-eib  { color: var(--suse); }
+    .cell.method-ele  { color: var(--amber); }
+    .cell.method-imp  { color: var(--teal); }
+    .cell.method-man  { color: var(--text-sec); }
+
+    /* ── Provisioning cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      padding: 20px;
+    }
+
+    .card-tag {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .card-tag.eib   { color: var(--suse); }
+    .card-tag.ele   { color: var(--amber); }
+    .card-tag.imp   { color: var(--teal); }
+
+    .card h4 {
+      font-size: 15px;
+      color: var(--text-pri);
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .card p {
+      font-size: 12px;
+      color: var(--text-sec);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── Tech stack ── */
+    .stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      color: var(--text-sec);
+    }
+
+    .tag.green  { border-color: var(--suse-dark);  color: var(--suse); }
+    .tag.teal   { border-color: #0e6b63;            color: var(--teal); }
+    .tag.amber  { border-color: #7a5500;            color: var(--amber); }
+
+    /* ── Terminal block ── */
+    .terminal {
+      background: var(--bg-mid);
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      margin-top: 16px;
+      overflow-x: auto;
+    }
+
+    .terminal pre {
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--suse);
+      line-height: 1.7;
+      white-space: pre;
+    }
+
+    .terminal .comment { color: var(--suse-dark); }
+    .terminal .cmd     { color: var(--text-pri); }
+    .terminal .out     { color: var(--teal); }
+
+    /* ── Footer ── */
+    footer {
+      padding: 40px 24px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-sec);
+      letter-spacing: 0.15em;
+    }
+
+    footer a {
+      color: var(--suse);
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    footer .links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Blink cursor ── */
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .cursor {
+      display: inline-block;
+      width: 9px;
+      height: 16px;
+      background: var(--suse);
+      vertical-align: middle;
+      margin-left: 4px;
+      animation: blink 1.1s step-end infinite;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .fleet-row { grid-template-columns: 1fr; }
+      .fleet-row.header { display: none; }
+      .cell.vessel { color: var(--teal); font-weight: bold; }
+      .topbar .status { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <span class="id">MISSION-CONTROL // SYS</span>
+    <span>SUSE EDGE 3.5</span>
+    <span class="status">UPLINK NOMINAL</span>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="container">
+      <p class="hero-label">KubeCon + CloudNativeCon Demo</p>
+      <h1>Ground Control<br>to All Ships</h1>
+      <h2>SUSE Edge 3.5 // Mission Control</h2>
+      <p>
+        A live edge computing demo running on a fleet of Raspberry Pi boards and x86 NUCs.
+        One management plane. Five vessels. Three provisioning methods. Zero manual config after launch.
+      </p>
+      <a class="hero-cta" href="https://github.com/avaleror/alien-geeko-demo" target="_blank">
+        View on GitHub
+      </a>
+    </div>
+  </div>
+
+  <!-- Fleet -->
+  <section>
+    <div class="container">
+      <p class="section-label">// Fleet status</p>
+      <h3>The Fleet</h3>
+      <p>
+        Every vessel runs the same app — alien-geeko — deployed automatically by Fleet the moment
+        the cluster appears in Rancher. No SSH. No manual apply. The app shows live cluster vitals
+        directly in the browser.
+      </p>
+
+      <div class="fleet-grid">
+        <div class="fleet-row header">
+          <div class="cell">Vessel</div>
+          <div class="cell">Hardware</div>
+          <div class="cell">Provisioning</div>
+        </div>
+        <div class="fleet-row">
+          <div class="cell vessel">Mission Control</div>
+          <div class="cell">x86 NUC</div>
+          <div class="cell method-man">Manual — Rancher + Fleet + Elemental</div>
+        </div>
+        <div class="fleet-row">
+          <div class="cell vessel">Vessel Alpha</div>
+          <div class="cell">Raspberry Pi 4 // SL Micro 6.2</div>
+          <div class="cell method-eib">EIB — pre-built image, zero config on boot</div>
+        </div>
+        <div class="fleet-row">
+          <div class="cell vessel">Vessel Beta</div>
+          <div class="cell">x86 NUC // Any Linux</div>
+          <div class="cell method-ele">Elemental — phones home, self-registers</div>
+        </div>
+        <div class="fleet-row">
+          <div class="cell vessel">Vessel Delta-k3s</div>
+          <div class="cell">Raspberry Pi 5 // openSUSE Tumbleweed</div>
+          <div class="cell method-imp">Rancher Import + k3s</div>
+        </div>
+        <div class="fleet-row">
+          <div class="cell vessel">Vessel Delta-RKE2</div>
+          <div class="cell">Raspberry Pi 5 // openSUSE Tumbleweed</div>
+          <div class="cell method-imp">Rancher Import + RKE2</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Provisioning paths -->
+  <section>
+    <div class="container">
+      <p class="section-label">// Provisioning paths</p>
+      <h3>Three Ways to Launch a Vessel</h3>
+      <p>
+        Every edge environment is different. SUSE Edge 3.5 covers all three scenarios in a single platform.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <p class="card-tag eib">EIB // Edge Image Builder</p>
+          <h4>Pre-Program the Flight</h4>
+          <p>
+            Build a raw disk image with the OS, k3s, users, and SSH keys baked in.
+            Write it to SD card with dd. Boot the Pi. It joins the fleet on first power-on.
+            No network calls. No interactive setup.
+          </p>
+        </div>
+        <div class="card">
+          <p class="card-tag ele">Elemental // Phone-Home</p>
+          <h4>Signal Acquired</h4>
+          <p>
+            Boot from an Elemental-enabled image. The node calls back to Rancher automatically,
+            appears in the Elemental inventory, and waits for cluster assignment.
+            Fleet delivers the workload within seconds.
+          </p>
+        </div>
+        <div class="card">
+          <p class="card-tag imp">Rancher Import</p>
+          <h4>Hailing Frequencies Open</h4>
+          <p>
+            Install k3s or RKE2 on any Linux. Apply one kubectl command from Rancher.
+            The cluster agent establishes contact. Fleet takes it from there.
+            Used for Pi 5 boards not yet supported in SL Micro.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The app -->
+  <section>
+    <div class="container">
+      <p class="section-label">// Application</p>
+      <h3>alien-geeko</h3>
+      <p>
+        A Node.js app that queries the Kubernetes API at runtime and renders live cluster vitals
+        in a Nostromo CRT terminal UI. No database. No persistent storage. Just a service account
+        token, the K8s API, and a 60-second cache to go easy on the Pi.
+      </p>
+      <p>
+        The same container image runs on amd64 and arm64. Fleet picks the right overlay per cluster
+        via Kustomize — the only thing that changes is the cluster display name in the UI.
+      </p>
+
+      <div class="terminal">
+        <pre><span class="comment"># What the app surfaces per cluster</span>
+<span class="cmd">GET /api/info</span>
+<span class="out">
+{
+  "clusterName":   "VESSEL-ALPHA",
+  "k8sVersion":    "v1.29.3+k3s1",
+  "distribution":  "k3s",
+  "nodeCount":     1,
+  "arch":          "arm64",
+  "osImage":       "SL-Micro 6.2",
+  "nodeRole":      "control-plane",
+  "cpuCount":      4,
+  "loadAvg":       "0.42 0.38 0.31"
+}</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech stack -->
+  <section>
+    <div class="container">
+      <p class="section-label">// Stack</p>
+      <h3>Built On</h3>
+      <div class="stack">
+        <span class="tag green">SUSE Edge 3.5</span>
+        <span class="tag green">SL Micro 6.2</span>
+        <span class="tag green">openSUSE Tumbleweed</span>
+        <span class="tag green">Edge Image Builder</span>
+        <span class="tag amber">Elemental</span>
+        <span class="tag amber">Rancher</span>
+        <span class="tag amber">Fleet</span>
+        <span class="tag teal">k3s</span>
+        <span class="tag teal">RKE2</span>
+        <span class="tag teal">Kubernetes</span>
+        <span class="tag teal">Kustomize</span>
+        <span class="tag">Node.js</span>
+        <span class="tag">Raspberry Pi 4</span>
+        <span class="tag">Raspberry Pi 5</span>
+        <span class="tag">x86 NUC</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deploy -->
+  <section>
+    <div class="container">
+      <p class="section-label">// Deployment</p>
+      <h3>Deploy to Your Fleet</h3>
+      <p>Clone the repo, label your clusters in Rancher, add the GitRepo. Fleet does the rest.</p>
+
+      <div class="terminal">
+        <pre><span class="comment"># 1. Add the GitRepo in Rancher</span>
+<span class="cmd">Continuous Delivery > Git Repos > Add Repository
+URL:    https://github.com/avaleror/alien-geeko-demo
+Branch: main</span>
+
+<span class="comment"># 2. Label your clusters</span>
+<span class="cmd">demo=true  +  edge-type=pi-cluster       → Vessel Alpha overlay
+demo=true  +  edge-type=x86-elemental    → Vessel Beta overlay
+demo=true  +  edge-type=pi5-k3s         → Delta-k3s overlay
+demo=true  +  edge-type=pi5-rke2        → Delta-RKE2 overlay
+demo=true  +  edge-type=x86-cluster     → Mission Control overlay</span>
+
+<span class="comment"># 3. Verify</span>
+<span class="cmd">kubectl auth can-i list nodes \
+  --as=system:serviceaccount:alien-geeko:alien-geeko</span>
+<span class="out">yes</span><span class="cursor"></span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="links">
+      <a href="https://github.com/avaleror/alien-geeko-demo" target="_blank">GitHub</a>
+      <a href="https://documentation.suse.com/suse-edge/3.5/" target="_blank">SUSE Edge Docs</a>
+      <a href="https://github.com/suse-edge/edge-image-builder" target="_blank">Edge Image Builder</a>
+      <a href="https://elemental.docs.rancher.com/" target="_blank">Elemental</a>
+      <a href="https://fleet.rancher.io/" target="_blank">Fleet</a>
+    </div>
+    <p>Apache 2.0 &nbsp;|&nbsp; Copyright 2025 SUSE LLC &nbsp;|&nbsp; MISSION-CONTROL // SYS &nbsp;|&nbsp; UPLINK.NOMINAL</p>
+  </footer>
+
+</body>
+</html>
