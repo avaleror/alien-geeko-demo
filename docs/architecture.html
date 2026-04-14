@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    width: 1100px;
+    height: 580px;
+    background: #050F0A;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* scanlines */
+  body::after {
+    content:'';
+    position:absolute;
+    inset:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px);
+    pointer-events:none;
+    z-index:100;
+  }
+
+  svg {
+    width: 1100px;
+    height: 580px;
+    position: absolute;
+    top: 0; left: 0;
+  }
+</style>
+</head>
+<body>
+<svg viewBox="0 0 1100 580" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4A8A28"/>
+    </marker>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- background grid -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0A1F14" stroke-width="1"/>
+  </pattern>
+  <rect width="1100" height="580" fill="url(#grid)"/>
+
+  <!-- title -->
+  <text x="550" y="38" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="13" fill="#73BE44" filter="url(#glow)">
+    ★ MISSION CONTROL // FLEET STATUS ★
+  </text>
+  <line x1="60" y1="50" x2="1040" y2="50" stroke="#1E4A10" stroke-width="1"/>
+
+  <!-- ═══ MISSION CONTROL BOX ═══ -->
+  <!-- outer pixel border -->
+  <rect x="330" y="68" width="440" height="120" fill="none" stroke="#4A8A28" stroke-width="3"/>
+  <rect x="334" y="72" width="432" height="112" fill="none" stroke="#1E4A10" stroke-width="1"/>
+  <!-- fill -->
+  <rect x="335" y="73" width="430" height="110" fill="#0A1F14"/>
+  <!-- pixel corner accents -->
+  <rect x="330" y="68" width="10" height="10" fill="#73BE44"/>
+  <rect x="760" y="68" width="10" height="10" fill="#73BE44"/>
+  <rect x="330" y="178" width="10" height="10" fill="#73BE44"/>
+  <rect x="760" y="178" width="10" height="10" fill="#73BE44"/>
+
+  <text x="550" y="100" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="11" fill="#73BE44" filter="url(#glow)">🖥  MISSION CONTROL</text>
+  <text x="550" y="122" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#8DB890">x86 NUC // SL MICRO 6.2</text>
+  <line x1="355" y1="132" x2="745" y2="132" stroke="#1E4A10" stroke-width="1"/>
+  <text x="430" y="150" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#4A8A28">RANCHER PRIME</text>
+  <text x="550" y="150" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#4A8A28">FLEET</text>
+  <text x="670" y="150" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#4A8A28">ELEMENTAL</text>
+  <text x="550" y="167" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#4A8A28">EDGE IMAGE BUILDER</text>
+
+  <!-- ═══ ARROWS down ═══ -->
+  <!-- to Vessel Alpha -->
+  <line x1="380" y1="188" x2="155" y2="310" stroke="#4A8A28" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <!-- to Vessel Beta -->
+  <line x1="470" y1="188" x2="375" y2="310" stroke="#FFB000" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <!-- to Delta k3s -->
+  <line x1="630" y1="188" x2="720" y2="310" stroke="#17B3A3" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <!-- to Delta RKE2 -->
+  <line x1="720" y1="188" x2="945" y2="310" stroke="#17B3A3" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+
+  <!-- arrow labels -->
+  <text x="230" y="262" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="5" fill="#4A8A28">EIB</text>
+  <text x="400" y="262" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="5" fill="#FFB000">ELEMENTAL</text>
+  <text x="700" y="262" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="5" fill="#17B3A3">FLEET</text>
+  <text x="870" y="262" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="5" fill="#17B3A3">FLEET</text>
+
+  <!-- ═══ VESSEL MACRO ═══
+       x, y, w=220, h=200, color, emoji, name, hw, os, dist -->
+
+  <!-- Vessel Alpha -->
+  <rect x="40" y="310" width="220" height="195" fill="none" stroke="#4A8A28" stroke-width="2"/>
+  <rect x="43" y="313" width="214" height="189" fill="#0D2318"/>
+  <rect x="40" y="310" width="8" height="8" fill="#73BE44"/>
+  <rect x="252" y="310" width="8" height="8" fill="#73BE44"/>
+  <rect x="40" y="497" width="8" height="8" fill="#73BE44"/>
+  <rect x="252" y="497" width="8" height="8" fill="#73BE44"/>
+  <text x="150" y="340" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="9" fill="#73BE44">VESSEL ALPHA</text>
+  <line x1="55" y1="350" x2="245" y2="350" stroke="#1E4A10" stroke-width="1"/>
+  <text x="150" y="370" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#8DB890">Raspberry Pi 4</text>
+  <text x="150" y="388" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#8DB890">SL Micro 6.2</text>
+  <text x="150" y="406" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#4A8A28">k3s</text>
+  <text x="150" y="434" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="20" fill="#73BE44">👾</text>
+  <text x="150" y="472" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="6" fill="#73BE44">alien-geeko</text>
+  <text x="150" y="488" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="5" fill="#4A8A28">PROV: EIB</text>
+
+  <!-- Vessel Beta -->
+  <rect x="275" y="310" width="220" height="195" fill="none" stroke="#FFB000" stroke-width="2"/>
+  <rect x="278" y="313" width="214" height="189" fill="#0D2318"/>
+  <rect x="275" y="310" width="8" height="8" fill="#FFB000"/>
+  <rect x="487" y="310" width="8" height="8" fill="#FFB000"/>
+  <rect x="275" y="497" width="8" height="8" fill="#FFB000"/>
+  <rect x="487" y="497" width="8" height="8" fill="#FFB000"/>
+  <text x="385" y="340" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="9" fill="#FFB000">VESSEL BETA</text>
+  <line x1="290" y1="350" x2="480" y2="350" stroke="#7a5500" stroke-width="1"/>
+  <text x="385" y="370" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#8DB890">x86 NUC</text>
+  <text x="385" y="388" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#8DB890">SL Micro 6.2</text>
+  <text x="385" y="406" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#FFB000">Elemental</text>
+  <text x="385" y="434" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="20" fill="#FFB000">👾</text>
+  <text x="385" y="472" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="6" fill="#73BE44">alien-geeko</text>
+  <text x="385" y="488" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="5" fill="#FFB000">PROV: ELEMENTAL</text>
+
+  <!-- Vessel Delta k3s -->
+  <rect x="610" y="310" width="220" height="195" fill="none" stroke="#17B3A3" stroke-width="2"/>
+  <rect x="613" y="313" width="214" height="189" fill="#0D2318"/>
+  <rect x="610" y="310" width="8" height="8" fill="#17B3A3"/>
+  <rect x="822" y="310" width="8" height="8" fill="#17B3A3"/>
+  <rect x="610" y="497" width="8" height="8" fill="#17B3A3"/>
+  <rect x="822" y="497" width="8" height="8" fill="#17B3A3"/>
+  <text x="720" y="340" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#17B3A3">VESSEL DELTA-K3S</text>
+  <line x1="625" y1="350" x2="815" y2="350" stroke="#0e6b63" stroke-width="1"/>
+  <text x="720" y="370" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#8DB890">Raspberry Pi 5</text>
+  <text x="720" y="388" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="6" fill="#8DB890">openSUSE Tumbleweed</text>
+  <text x="720" y="406" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#17B3A3">k3s</text>
+  <text x="720" y="434" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="20" fill="#17B3A3">👾</text>
+  <text x="720" y="472" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="6" fill="#73BE44">alien-geeko</text>
+  <text x="720" y="488" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="5" fill="#17B3A3">PROV: RANCHER IMPORT</text>
+
+  <!-- Vessel Delta RKE2 -->
+  <rect x="845" y="310" width="220" height="195" fill="none" stroke="#17B3A3" stroke-width="2"/>
+  <rect x="848" y="313" width="214" height="189" fill="#0D2318"/>
+  <rect x="845" y="310" width="8" height="8" fill="#17B3A3"/>
+  <rect x="1057" y="310" width="8" height="8" fill="#17B3A3"/>
+  <rect x="845" y="497" width="8" height="8" fill="#17B3A3"/>
+  <rect x="1057" y="497" width="8" height="8" fill="#17B3A3"/>
+  <text x="955" y="340" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#17B3A3">VESSEL DELTA-RKE2</text>
+  <line x1="860" y1="350" x2="1050" y2="350" stroke="#0e6b63" stroke-width="1"/>
+  <text x="955" y="370" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#8DB890">Raspberry Pi 5</text>
+  <text x="955" y="388" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="6" fill="#8DB890">openSUSE Tumbleweed</text>
+  <text x="955" y="406" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="7" fill="#17B3A3">RKE2</text>
+  <text x="955" y="434" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="20" fill="#17B3A3">👾</text>
+  <text x="955" y="472" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="6" fill="#73BE44">alien-geeko</text>
+  <text x="955" y="488" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="5" fill="#17B3A3">PROV: RANCHER IMPORT</text>
+
+  <!-- footer -->
+  <line x1="60" y1="520" x2="1040" y2="520" stroke="#1E4A10" stroke-width="1"/>
+  <text x="550" y="542" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="6" fill="#1E4A10">SUSE EDGE 3.5 // KUBECON DEMO // INSERT COIN TO CONTINUE</text>
+</svg>
+</body>
+</html>
