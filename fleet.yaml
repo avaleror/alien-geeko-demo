@@ -1,0 +1,86 @@
+# Copyright 2025 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# fleet.yaml — Fleet GitOps bundle definition
+# Documentation: https://fleet.rancher.io/ref-fleet-yaml
+
+# defaultNamespace — fallback for any resource without an explicit namespace.
+# Does NOT enforce namespace restriction, so cluster-scoped resources
+# (ClusterRole, ClusterRoleBinding) are allowed through unmodified.
+defaultNamespace: alien-geeko
+
+helm:
+  # takeOwnership allows Fleet to adopt the alien-geeko namespace even if it
+  # was pre-created or left over from a previous install attempt.
+  # Prevents "invalid ownership metadata" errors without manual kubectl pre-steps.
+  takeOwnership: true
+
+targets:
+  # Vessel Alpha — Raspberry Pi 4, SL Micro 6.2, provisioned via EIB.
+  - name: vessel-alpha-pi4-eib
+    clusterSelector:
+      matchLabels:
+        demo: "true"
+        edge-type: pi-cluster
+        kubernetes.io/arch: arm64
+    kustomize:
+      dir: overlays/pi-cluster
+
+  # Vessel Beta — x86 NUC, provisioned via Elemental phone-home.
+  - name: vessel-beta-x86-elemental
+    clusterSelector:
+      matchLabels:
+        demo: "true"
+        edge-type: x86-elemental
+    kustomize:
+      dir: overlays/x86-elemental
+
+  # Vessel Delta-k3s — Raspberry Pi 5, openSUSE Tumbleweed + k3s, Rancher Import.
+  - name: vessel-delta-pi5-k3s
+    clusterSelector:
+      matchLabels:
+        demo: "true"
+        edge-type: pi5-k3s
+        kubernetes.io/arch: arm64
+    kustomize:
+      dir: overlays/pi5-k3s
+
+  # Vessel Delta-RKE2 — Raspberry Pi 5, openSUSE Tumbleweed + RKE2, Rancher Import.
+  - name: vessel-delta-pi5-rke2
+    clusterSelector:
+      matchLabels:
+        demo: "true"
+        edge-type: pi5-rke2
+        kubernetes.io/arch: arm64
+    kustomize:
+      dir: overlays/pi5-rke2
+
+  # Mission Control — x86 NUC running Rancher + Fleet + Elemental.
+  - name: mission-control-x86
+    clusterSelector:
+      matchLabels:
+        demo: "true"
+        edge-type: x86-cluster
+    kustomize:
+      dir: overlays/x86-cluster
+
+  # Fallback — any cluster with demo=true that did not match a specific target above.
+  # ── NO clusterSelector: {} ───────────────────────────────────────────────────────
+  # Clusters without demo=true match nothing and receive nothing.
+  - name: all-demo-clusters
+    clusterSelector:
+      matchLabels:
+        demo: "true"
+    kustomize:
+      dir: overlays/default

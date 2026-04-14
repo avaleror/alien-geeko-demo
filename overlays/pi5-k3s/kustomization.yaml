@@ -1,0 +1,23 @@
+# Copyright 2025 SUSE LLC
+# Licensed under the Apache License, Version 2.0
+#
+# Overlay for Vessel Delta-k3s — Raspberry Pi 5, openSUSE Tumbleweed, k3s.
+# Imported into Rancher. Label: edge-type=pi5-k3s
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../k8s/00-namespace.yaml
+  - ../../k8s/01-rbac.yaml
+  - ../../k8s/02-deployment.yaml
+  - ../../k8s/03-configmap.yaml
+  - ../../k8s/04-service.yaml
+patches:
+  - target:
+      kind: ConfigMap
+      name: alien-geeko-config
+      namespace: alien-geeko
+    patch: |-
+      - op: replace
+        path: /data/CLUSTER_NAME
+        value: "VESSEL-DELTA-K3S"

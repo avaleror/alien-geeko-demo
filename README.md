@@ -251,7 +251,7 @@ targets:
 | Cluster | Labels |
 |---|---|
 | Vessel Alpha — Pi 4 via EIB | `demo=true`, `edge-type=pi-cluster`, `kubernetes.io/arch=arm64` |
-| Vessel Beta — x86 NUC via Elemental | `demo=true`, `edge-type=x86-cluster` |
+| Vessel Beta — x86 NUC via Elemental | `demo=true`, `edge-type=x86-elemental` |
 | Vessel Delta-k3s — Pi 5 k3s | `demo=true`, `edge-type=pi5-k3s`, `kubernetes.io/arch=arm64` |
 | Vessel Delta-RKE2 — Pi 5 RKE2 | `demo=true`, `edge-type=pi5-rke2`, `kubernetes.io/arch=arm64` |
 | Mission Control — x86 NUC | `demo=true`, `edge-type=x86-cluster` |
