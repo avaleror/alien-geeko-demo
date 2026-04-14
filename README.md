@@ -4,7 +4,7 @@
 
 A Node.js app that runs on every cluster in a Raspberry Pi + x86 fleet and displays live Kubernetes vitals in a Nostromo CRT terminal UI. Used as a KubeCon booth demo for SUSE Edge 3.5.
 
-The narrative: the x86 NUC is Mission Control. The Raspberry Pi boards are vessels in the fleet. This app is the crew manifest transmitted to all vessels via Fleet.
+The narrative: the x86 NUC is Mission Control. The Raspberry Pi and x86 boards are vessels in the fleet. This app is the crew manifest transmitted to all vessels via Fleet.
 
 ---
 
@@ -28,11 +28,12 @@ No persistent storage. No external dependencies at runtime. Just a service accou
 |---|---|---|---|
 | Mission Control | x86 NUC | Any Linux | Manual — runs k3s + Rancher + Fleet + Elemental |
 | Vessel Alpha | Raspberry Pi 4 | SL Micro 6.2 | EIB (Edge Image Builder) |
-| Vessel Beta | Raspberry Pi 4 | SL Micro 6.2 | Elemental (phone-home) |
-| Vessel Delta | Raspberry Pi 5 (xN) | openSUSE MicroOS | Rancher Import |
+| Vessel Beta | x86 NUC | Any Linux | Elemental (phone-home) |
+| Vessel Delta-k3s | Raspberry Pi 5 | openSUSE Tumbleweed | Rancher Import + k3s |
+| Vessel Delta-RKE2 | Raspberry Pi 5 | openSUSE Tumbleweed | Rancher Import + RKE2 |
 | Standby | x86 Spare NUC | Any | EIB or Import |
 
-> **Note:** Raspberry Pi 5 (BCM2712) is NOT supported in SL Micro 6.2. Pi 5 boards run k3s natively and are imported into Rancher. SL Micro 6.3 (planned late 2026) will add Pi 5 support.
+> **Note:** Raspberry Pi 5 (BCM2712) is NOT supported in SL Micro 6.2. Pi 5 boards run openSUSE Tumbleweed with k3s or RKE2 and are imported into Rancher. SL Micro 6.3 (planned late 2026) will add Pi 5 support.
 
 ---
 
@@ -249,10 +250,11 @@ targets:
 
 | Cluster | Labels |
 |---|---|
-| Pi 4 via EIB | `demo=true`, `edge-type=pi-cluster`, `kubernetes.io/arch=arm64` |
-| Pi 4 via Elemental | `demo=true`, `edge-type=pi-cluster`, `kubernetes.io/arch=arm64` |
-| Pi 5 Imported | `demo=true`, `edge-type=pi5-imported`, `kubernetes.io/arch=arm64` |
-| x86 NUC | `demo=true`, `edge-type=x86-cluster` |
+| Vessel Alpha — Pi 4 via EIB | `demo=true`, `edge-type=pi-cluster`, `kubernetes.io/arch=arm64` |
+| Vessel Beta — x86 NUC via Elemental | `demo=true`, `edge-type=x86-cluster` |
+| Vessel Delta-k3s — Pi 5 k3s | `demo=true`, `edge-type=pi5-k3s`, `kubernetes.io/arch=arm64` |
+| Vessel Delta-RKE2 — Pi 5 RKE2 | `demo=true`, `edge-type=pi5-rke2`, `kubernetes.io/arch=arm64` |
+| Mission Control — x86 NUC | `demo=true`, `edge-type=x86-cluster` |
 
 ### Add the GitRepo in Rancher
 
@@ -311,30 +313,57 @@ diskutil eject /dev/diskN
 
 ---
 
-## Elemental — Vessel Beta (Pi 4)
+## Elemental — Vessel Beta (x86 NUC)
 
-Vessel Beta uses Elemental for phone-home onboarding:
+Vessel Beta is an x86 NUC that uses Elemental for phone-home onboarding — no manual cluster setup needed.
 
-1. Build the EIB image with Elemental registration config pre-baked
-2. Boot the Pi — it calls back to Rancher automatically
-3. Node appears in Rancher > Elemental inventory
-4. Assign cluster in Rancher UI
+1. Boot the NUC from an Elemental-enabled ISO or USB image
+2. The node calls back to Rancher automatically on first boot
+3. It appears in Rancher > Elemental inventory
+4. Assign it to a cluster in the Rancher UI
 5. Fleet delivers `alien-geeko` within seconds of cluster assignment
+
+This shows the same zero-touch provisioning flow as EIB, but for hardware that shows up unannounced — no pre-baked image required.
 
 ---
 
-## Rancher Import — Vessel Delta (Pi 5)
+## Rancher Import — Vessel Delta (Pi 5 x2)
 
-Pi 5 is not supported in SL Micro 6.2. Run openSUSE MicroOS with k3s, then import into Rancher.
+Pi 5 (BCM2712) is not supported in SL Micro 6.2. Both Pi 5 boards run openSUSE Tumbleweed and are imported into Rancher — one with k3s, one with RKE2. This demonstrates that Fleet manages heterogeneous distributions in the same fleet without changes to the app or manifests.
+
+### Vessel Delta-k3s
+
+Install k3s on openSUSE Tumbleweed, then import into Rancher:
 
 ```bash
-# On the Pi 5 — apply the import manifest from Rancher
-kubectl apply -f <rancher-cluster-import-url>
+# Install k3s
+curl -sfL https://get.k3s.io | sh -
+
+# Import into Rancher — apply the cluster agent manifest from Rancher UI
+kubectl apply -f <rancher-k3s-cluster-import-url>
 ```
 
-The cluster appears in Rancher. Add labels, Fleet picks it up.
+Set labels in Rancher: `demo=true`, `edge-type=pi5-k3s`, `kubernetes.io/arch=arm64`
 
-**Pi 5 setup notes:**
+### Vessel Delta-RKE2
+
+Install RKE2 on openSUSE Tumbleweed, then import into Rancher:
+
+```bash
+# Install RKE2
+curl -sfL https://get.rke2.io | sh -
+systemctl enable rke2-server.service
+systemctl start rke2-server.service
+
+# Import into Rancher — apply the cluster agent manifest from Rancher UI
+kubectl apply -f <rancher-rke2-cluster-import-url>
+```
+
+Set labels in Rancher: `demo=true`, `edge-type=pi5-rke2`, `kubernetes.io/arch=arm64`
+
+> **RKE2 note:** RKE2 enforces Pod Security Admission at `restricted` by default. The namespace in `k8s/00-namespace.yaml` already includes `pod-security.kubernetes.io/enforce: baseline` — verify it applies cleanly on the RKE2 cluster before the demo.
+
+### Pi 5 hardware setup (both boards)
 
 ```bash
 # Enable NVMe boot — set BOOT_ORDER=0xf416 via raspi-config or rpi-eeprom-config
@@ -405,6 +434,7 @@ cat /sys/class/thermal/cooling_device0/cur_state
 - [ ] Set the right `CLUSTER_NAME` in each overlay before pushing
 - [ ] Confirm `demo=true` label is set on all target clusters in Rancher
 - [ ] Run `kubectl auth can-i list nodes` on each cluster — must return `yes`
+- [ ] Verify PSA labels on the `alien-geeko` namespace on the RKE2 Pi 5 cluster
 - [ ] Test port-forward on each cluster before the floor opens
 - [ ] If venue network blocks GitHub, switch Fleet GitRepo URL to local Gitea on the NUC
 
