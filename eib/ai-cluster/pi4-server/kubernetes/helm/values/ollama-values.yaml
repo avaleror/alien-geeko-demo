@@ -1,0 +1,80 @@
+# Ollama Helm values — otwld/ollama chart
+# Deployed on the NVIDIA Jetson Orin worker node (192.168.8.8)
+# API exposed at http://192.168.8.9:11434 via MetalLB L2
+
+# ─── GPU ─────────────────────────────────────────────────────────────────────
+ollama:
+  gpu:
+    enabled: true
+    type: nvidia
+    number: 1
+    nvidiaResource: "nvidia.com/gpu"
+
+  # Models to pull automatically on first start.
+  # phi3:mini (3.8B, ~2.3 GB) fits comfortably in the Orin's 8 GB unified memory.
+  # Add more models as needed — they are cached in the PVC.
+  # Other options: llama3.2:3b (~2 GB), gemma2:2b (~1.6 GB)
+  models:
+    pull:
+      - phi3:mini
+
+# ─── Runtime ─────────────────────────────────────────────────────────────────
+# Must match the RuntimeClass deployed in 01-nvidia-runtimeclass.yaml
+runtimeClassName: nvidia
+
+# ─── Scheduling — pin to the Orin worker ─────────────────────────────────────
+nodeSelector:
+  kubernetes.io/hostname: orin-worker
+
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+
+# ─── Resources ───────────────────────────────────────────────────────────────
+# Jetson Orin 8 GB has unified CPU+GPU memory.
+# Reserve ~1 GB for the OS, leave the rest for Ollama + model.
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "500m"
+  limits:
+    memory: "7Gi"
+    cpu: "4"
+    nvidia.com/gpu: "1"
+
+# ─── Persistence — model cache survives pod restarts ─────────────────────────
+persistentVolume:
+  enabled: true
+  size: 20Gi         # phi3:mini needs ~2.3 GB; leave room for additional models
+  accessModes:
+    - ReadWriteOnce
+
+# ─── Service — LoadBalancer assigned by MetalLB (192.168.8.9) ────────────────
+service:
+  type: LoadBalancer
+  port: 11434
+
+# ─── Probes — first boot pulls the model, allow extra startup time ────────────
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 120    # model pull can take several minutes on first boot
+  periodSeconds: 30
+  failureThreshold: 10
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 10
+
+# ─── Environment ─────────────────────────────────────────────────────────────
+extraEnv:
+  - name: OLLAMA_HOST
+    value: "0.0.0.0:11434"
+  - name: OLLAMA_KEEP_ALIVE
+    value: "24h"              # keep model loaded in GPU memory — avoids reload latency
+  # CUDA tuning for Jetson Orin unified memory architecture
+  - name: CUDA_VISIBLE_DEVICES
+    value: "0"
+  - name: OLLAMA_NUM_GPU
+    value: "1"

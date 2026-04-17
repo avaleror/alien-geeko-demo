@@ -1,0 +1,46 @@
+# NVIDIA Device Plugin DaemonSet
+# Runs only on nodes with label: nvidia.com/gpu.present=true
+# This label is set automatically by the plugin on Orin after it detects the GPU.
+# For k3s: kubelet socket path differs from vanilla Kubernetes.
+# k3s kubelet dir: /var/lib/rancher/k3s/agent/kubelet/
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nvidia-device-plugin-daemonset
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: nvidia-device-plugin-ds
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: nvidia-device-plugin-ds
+    spec:
+      tolerations:
+        # Allow scheduling on GPU nodes even if tainted
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      priorityClassName: system-node-critical
+      containers:
+        - name: nvidia-device-plugin-ctr
+          image: nvcr.io/nvidia/k8s-device-plugin:v0.16.2
+          env:
+            - name: FAIL_ON_INIT_ERROR
+              value: "false"   # prevents crash-loop if GPU not found on non-GPU nodes
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+      volumes:
+        - name: device-plugin
+          hostPath:
+            # k3s symlinks /var/lib/kubelet → /var/lib/rancher/k3s/agent/kubelet
+            path: /var/lib/kubelet/device-plugins

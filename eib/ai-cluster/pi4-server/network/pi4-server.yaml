@@ -1,0 +1,26 @@
+# nmstate network config for pi4-server
+# Filename must match the node hostname exactly.
+# Adjust eth0 to your actual interface name if different (ip link show after first boot).
+routes:
+  config:
+    - destination: 0.0.0.0/0
+      next-hop-address: 192.168.8.1     # adjust to your gateway
+      next-hop-interface: eth0
+dns-resolver:
+  config:
+    server:
+      - 8.8.8.8
+      - 8.8.4.4
+interfaces:
+  - name: eth0
+    type: ethernet
+    state: up
+    ipv4:
+      enabled: true
+      dhcp: false
+      address:
+        - ip: 192.168.8.7
+          prefix-length: 24
+    ipv6:
+      enabled: false
+      dhcp: false

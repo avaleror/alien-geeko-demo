@@ -1,0 +1,83 @@
+apiVersion: 1.0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Vessel AI — Pi 4 Server Node
+# Role: k3s control-plane + etcd
+# IP:   192.168.8.7
+# ─────────────────────────────────────────────────────────────────────────────
+
+image:
+  imageType: raw
+  arch: aarch64
+  baseImage: SL-Micro.aarch64-6.2-RaspberryPi-GM.raw
+  outputImageName: vessel-ai-pi4-server.raw
+
+operatingSystem:
+  hostname: pi4-server
+
+  users:
+    - username: suse
+      encryptedPassword: "$6$CHANGEME$CHANGEME"    # generate: openssl passwd -6 yourpassword
+      uid: 1000
+
+  ssh:
+    enabled: true
+    authorizedKeys:
+      - "ssh-ed25519 AAAA_CHANGE_ME your-key"      # replace with your public key
+
+  time:
+    timezone: UTC
+
+# ─────────────────────────────────────────────────────────────────────────────
+# k3s server — bootstraps the cluster, other nodes join via token
+# ─────────────────────────────────────────────────────────────────────────────
+kubernetes:
+  version: v1.30.3+k3s1
+
+  network:
+    # Single-server cluster — apiHost is the server's static IP
+    apiHost: 192.168.8.7
+
+  # Pre-shared token — must match orin-worker/image-definition.yaml exactly
+  # Generate a strong token: openssl rand -hex 32
+  clusterToken: "CHANGE-ME-USE-STRONG-RANDOM-TOKEN"
+
+  nodes:
+    - hostname: pi4-server
+      type: server
+      initializer: true    # bootstraps the cluster; other nodes wait for this
+
+  # MetalLB install manifest pulled at boot — requires internet or air-gap mirror
+  manifests:
+    urls:
+      - https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
+  # Local manifests applied from kubernetes/manifests/ in alphabetical order.
+  # Ollama is deployed via Helm (see below) — NOT as a raw manifest.
+
+  helm:
+    repositories:
+      - name: otwld
+        url: https://helm.otwld.com/
+      - name: open-webui
+        url: https://helm.openwebui.com/
+
+    charts:
+      # Ollama — LLM inference server with NVIDIA GPU support
+      # Chart docs: https://github.com/otwld/ollama-helm
+      # ⚠️  Verify latest chart version: helm search repo otwld/ollama
+      - name: ollama
+        version: "0.74.0"
+        repositoryName: otwld
+        targetNamespace: ollama
+        createNamespace: true
+        valuesFile: ollama-values.yaml
+
+      # Open WebUI — chat UI connecting to the Ollama service
+      # Chart docs: https://github.com/open-webui/helm-charts
+      # ⚠️  Verify latest chart version: helm search repo open-webui/open-webui
+      - name: open-webui
+        version: "3.3.0"
+        repositoryName: open-webui
+        targetNamespace: open-webui
+        createNamespace: true
+        valuesFile: open-webui-values.yaml

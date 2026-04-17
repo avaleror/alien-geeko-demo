@@ -1,0 +1,69 @@
+apiVersion: 1.0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Vessel AI — NVIDIA Jetson Orin Worker Node
+# Role: k3s agent + GPU workloads (Ollama)
+# IP:   192.168.8.8
+#
+# Base image: SL Micro 6.2 generic aarch64 — no Jetson-specific image exists yet.
+# ─────────────────────────────────────────────────────────────────────────────
+
+image:
+  imageType: raw
+  arch: aarch64
+  baseImage: SL-Micro.aarch64-6.2-Default-GM.raw
+  outputImageName: vessel-ai-orin-worker.raw
+
+operatingSystem:
+  hostname: orin-worker
+
+  users:
+    - username: suse
+      encryptedPassword: "$6$CHANGEME$CHANGEME"    # generate: openssl passwd -6 yourpassword
+      uid: 1000
+
+  ssh:
+    enabled: true
+    authorizedKeys:
+      - "ssh-ed25519 AAAA_CHANGE_ME your-key"      # replace with your public key
+
+  time:
+    timezone: UTC
+
+  # ─── NVIDIA AI software stack ────────────────────────────────────────────────
+  #
+  # LAYER 1 — JetPack BSP (pre-baked into the SL Micro Jetson base image)
+  #   CUDA 12.x runtime, cuDNN 9.x, TensorRT 10.x, VPI 3.x, DLA 3.x
+  #   These are part of the Jetson Linux (L4T) driver package.
+  #   No separate packages needed — they come with the base image.
+  #
+  # LAYER 2 — nvidia-container-toolkit (installed here via EIB packages)
+  #   Bridges the host JetPack GPU stack into containers.
+  #   k3s detects it on first start and auto-configures containerd
+  #   to use nvidia-container-runtime. This is what makes
+  #   `nvidia.com/gpu: 1` resource requests work in pods.
+  #
+  # LAYER 3 — NVIDIA Device Plugin (deployed as DaemonSet via manifest)
+  #   Advertises GPU as a schedulable Kubernetes resource.
+  #   Defined in pi4-server/kubernetes/manifests/02-nvidia-device-plugin.yaml
+  #
+  packages:
+    packageList:
+      - nvidia-container-toolkit    # container runtime hook for GPU passthrough
+      - libnvidia-container1        # core library dependency of the toolkit
+    additionalRepos:
+      # Official NVIDIA Container Toolkit repo — stable RPM build for ARM64
+      # This is the authoritative source for Jetson (not the sbsa CUDA repo)
+      - url: https://nvidia.github.io/libnvidia-container/stable/rpm/aarch64
+        unsigned: false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# k3s agent — joins the cluster bootstrapped by pi4-server
+# Token and server address configured via scripts/99-k3s-agent-join.sh
+# ─────────────────────────────────────────────────────────────────────────────
+kubernetes:
+  version: v1.30.3+k3s1
+
+  nodes:
+    - hostname: orin-worker
+      type: agent
