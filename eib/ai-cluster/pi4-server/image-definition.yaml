@@ -1,9 +1,9 @@
-apiVersion: 1.0
+apiVersion: 1.3
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Vessel AI — Pi 4 Server Node
 # Role: k3s control-plane + etcd
-# IP:   192.168.8.7
+# MAC:  D8:3A:DD:32:61:AA  →  router assigns 192.168.8.7 via DHCP reservation
 # ─────────────────────────────────────────────────────────────────────────────
 
 image:
@@ -13,46 +13,56 @@ image:
   outputImageName: vessel-ai-pi4-server.raw
 
 operatingSystem:
-  hostname: pi4-server
-
-  users:
-    - username: suse
-      encryptedPassword: "$6$CHANGEME$CHANGEME"    # generate: openssl passwd -6 yourpassword
-      uid: 1000
-
-  ssh:
-    enabled: true
-    authorizedKeys:
-      - "ssh-ed25519 AAAA_CHANGE_ME your-key"      # replace with your public key
+  rawConfiguration:
+    diskSize: 32G
 
   time:
-    timezone: UTC
+    timezone: Europe/Prague
+    ntp:
+      forceWait: true
+      pools:
+        - 2.suse.pool.ntp.org
+
+  systemd:
+    enable:
+      - cockpit.socket
+
+  keymap: us
+
+  users:
+    - username: root
+      encryptedPassword: "CHANGE-ME"    # openssl passwd -6 yourpassword
+      createHomeDir: true
+    - username: suse-user
+      encryptedPassword: "CHANGE-ME"    # openssl passwd -6 yourpassword
+      createHomeDir: true
+      sshKeys:
+        - "CHANGE-ME"                   # cat ~/.ssh/id_rsa.pub or id_ed25519.pub
+
+  packages:
+    packageList:
+      - jq
+      - container-selinux
+      - k3s-selinux
+      - git
+    sccRegistrationCode: "CHANGE-ME"    # SUSE Customer Center registration code
 
 # ─────────────────────────────────────────────────────────────────────────────
-# k3s server — bootstraps the cluster, other nodes join via token
+# k3s server — token + CNI + selinux config in kubernetes/config/server.yaml
 # ─────────────────────────────────────────────────────────────────────────────
 kubernetes:
-  version: v1.30.3+k3s1
+  version: v1.34.2+k3s1
 
   network:
-    # Single-server cluster — apiHost is the server's static IP
-    apiHost: 192.168.8.7
-
-  # Pre-shared token — must match orin-worker/image-definition.yaml exactly
-  # Generate a strong token: openssl rand -hex 32
-  clusterToken: "CHANGE-ME-USE-STRONG-RANDOM-TOKEN"
 
   nodes:
     - hostname: pi4-server
       type: server
-      initializer: true    # bootstraps the cluster; other nodes wait for this
+      initializer: true
 
-  # MetalLB install manifest pulled at boot — requires internet or air-gap mirror
   manifests:
     urls:
       - https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
-  # Local manifests applied from kubernetes/manifests/ in alphabetical order.
-  # Ollama is deployed via Helm (see below) — NOT as a raw manifest.
 
   helm:
     repositories:
@@ -62,8 +72,6 @@ kubernetes:
         url: https://helm.openwebui.com/
 
     charts:
-      # Ollama — LLM inference server with NVIDIA GPU support
-      # Chart docs: https://github.com/otwld/ollama-helm
       # ⚠️  Verify latest chart version: helm search repo otwld/ollama
       - name: ollama
         version: "0.74.0"
@@ -72,8 +80,6 @@ kubernetes:
         createNamespace: true
         valuesFile: ollama-values.yaml
 
-      # Open WebUI — chat UI connecting to the Ollama service
-      # Chart docs: https://github.com/open-webui/helm-charts
       # ⚠️  Verify latest chart version: helm search repo open-webui/open-webui
       - name: open-webui
         version: "3.3.0"
