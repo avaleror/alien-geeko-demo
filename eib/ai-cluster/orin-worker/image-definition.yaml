@@ -3,7 +3,7 @@ apiVersion: 1.0
 # ─────────────────────────────────────────────────────────────────────────────
 # Vessel AI — NVIDIA Jetson Orin Worker Node
 # Role: k3s agent + GPU workloads (Ollama)
-# IP:   192.168.8.8
+# MAC:  48:B0:2D:EA:6B:C3  →  router assigns 192.168.8.8 via DHCP reservation
 #
 # Base image: SL Micro 6.2 generic aarch64 — no Jetson-specific image exists yet.
 # ─────────────────────────────────────────────────────────────────────────────

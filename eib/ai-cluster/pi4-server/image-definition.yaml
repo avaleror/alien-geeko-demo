@@ -3,7 +3,7 @@ apiVersion: 1.3
 # ─────────────────────────────────────────────────────────────────────────────
 # Vessel AI — Pi 4 Server Node
 # Role: k3s control-plane + etcd
-# MAC:  D8:3A:DD:32:61:AA  →  router assigns 192.168.8.7 via DHCP reservation
+# MAC:  2C:CF:67:29:DB:C6  →  router assigns 192.168.8.7 via DHCP reservation
 # ─────────────────────────────────────────────────────────────────────────────
 
 image:

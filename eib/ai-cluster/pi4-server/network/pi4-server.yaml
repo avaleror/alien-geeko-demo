@@ -14,7 +14,7 @@ interfaces:
   - name: eth0
     type: ethernet
     state: up
-    mac-address: D8:3A:DD:32:61:AA
+    mac-address: 2C:CF:67:29:DB:C6
     ipv4:
       dhcp: true
       enabled: true

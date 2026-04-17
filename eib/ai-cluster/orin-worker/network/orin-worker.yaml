@@ -1,27 +1,22 @@
-# nmstate network config for orin-worker
-# Filename must match the node hostname exactly.
-# Jetson Orin interface is typically eth0 (built-in GbE).
-# Verify with: ip link show  after first boot.
 routes:
   config:
     - destination: 0.0.0.0/0
-      next-hop-address: 192.168.8.1     # adjust to your gateway
+      metric: 100
+      next-hop-address: 192.168.8.1
       next-hop-interface: eth0
+      table-id: 254
 dns-resolver:
   config:
     server:
+      - 192.168.8.1
       - 8.8.8.8
-      - 8.8.4.4
 interfaces:
   - name: eth0
     type: ethernet
     state: up
+    mac-address: 48:B0:2D:EA:6B:C3
     ipv4:
+      dhcp: true
       enabled: true
-      dhcp: false
-      address:
-        - ip: 192.168.8.8
-          prefix-length: 24
     ipv6:
       enabled: false
-      dhcp: false
