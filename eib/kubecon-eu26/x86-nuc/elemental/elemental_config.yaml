@@ -1,0 +1,5 @@
+elemental:
+    registration:
+        url: "CHANGE-ME"    # Rancher Elemental registration URL — copy from Rancher UI
+        ca-cert: |-
+            CHANGE-ME       # CA cert from Rancher Elemental registration — copy from Rancher UI

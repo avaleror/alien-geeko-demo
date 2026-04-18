@@ -1,0 +1,35 @@
+apiVersion: 1.3
+image:
+  imageType: iso
+  arch: x86_64
+  #baseImage: SL-Micro.x86_64-6.2-Base-SelfInstall-GM.install.iso 
+  baseImage: SL-Micro.x86_64-6.2.install.iso
+  outputImageName: kiwi-nuc-elemental.iso
+operatingSystem:
+  isoConfiguration:
+    #installDevice: /dev/vda
+    installDevice: /dev/sda
+  time:
+    timezone: Europe/Paris
+    ntp:
+      forceWait: true
+      pools:
+        - 2.suse.pool.ntp.org
+  systemd:
+    enable:
+      - cockpit.socket
+  keymap: us
+  users:
+  - username: root
+    encryptedPassword: "CHANGE-ME"    # openssl passwd -6 yourpassword
+    createHomeDir: true
+  - username: suse-user
+    encryptedPassword: "CHANGE-ME"    # openssl passwd -6 yourpassword
+    createHomeDir: true
+    sshKeys:
+      - "CHANGE-ME"                   # cat ~/.ssh/id_rsa.pub or id_ed25519.pub
+  packages:
+    packageList:
+      - jq
+      - git
+    sccRegistrationCode: "CHANGE-ME"    # SUSE Customer Center registration code

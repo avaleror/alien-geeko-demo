@@ -1,0 +1,67 @@
+apiVersion: 1.3
+image:
+  imageType: raw
+  arch: aarch64
+  baseImage: SL-Micro.aarch64-6.2-RaspberryPi-GM.raw
+  outputImageName: k3s-pi4-eib.raw
+operatingSystem:
+  rawConfiguration:
+    diskSize: 32G
+  time:
+    timezone: Europe/Paris
+    ntp:
+      forceWait: true
+      pools:
+        - 2.suse.pool.ntp.org
+  systemd:
+    enable:
+      - cockpit.socket
+  keymap: us
+  users:
+  - username: root
+    encryptedPassword: "CHANGE-ME"    # openssl passwd -6 yourpassword
+    createHomeDir: true
+  - username: suse-user
+    encryptedPassword: "CHANGE-ME"    # openssl passwd -6 yourpassword
+    createHomeDir: true
+    sshKeys:
+      - "CHANGE-ME"                   # cat ~/.ssh/id_rsa.pub or id_ed25519.pub
+  packages:
+    packageList:
+      - jq
+      - container-selinux
+      - k3s-selinux
+      - git
+    sccRegistrationCode: "CHANGE-ME"    # SUSE Customer Center registration code
+kubernetes:
+  version: v1.34.2+k3s1
+  network:
+  nodes:
+    - hostname: pi4-k3s-eib
+      initializer: true
+      type: server
+#  network:
+#    apiVIP: 192.168.8.19
+#  nodes:
+#    - hostname: pi5-edge1
+#      initializer: true
+#      type: server
+#    - hostname: pi5-edge2
+#      initializer: false
+#      type: server
+#    - hostname: pi5-edge3
+#      initializer: false
+#      type: server
+#  helm:
+#    charts:
+#      - name: nvidia-device-plugin
+#        version: v0.14.5
+#        installationNamespace: kube-system
+#        targetNamespace: nvidia-device-plugin
+#        createNamespace: true
+#        valuesFile: nvidia-device-plugin.yaml
+#        repositoryName: nvidia
+#
+#    repositories:
+#      - name: nvidia
+#        url: https://nvidia.github.io/k8s-device-plugin
