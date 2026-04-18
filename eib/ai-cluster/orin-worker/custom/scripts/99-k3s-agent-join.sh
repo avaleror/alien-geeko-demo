@@ -4,7 +4,7 @@
 #   1. Configure k3s agent to join the Pi 4 server cluster.
 #   2. Wire nvidia-container-toolkit into k3s's containerd so GPU works in pods.
 #
-# ⚠️  CHANGE-ME: token must match pi4-server/image-definition.yaml clusterToken
+# ⚠️  CHANGE-ME: token must match pi4-server/kubernetes/config/server.yaml token
 #
 set -euo pipefail
 
@@ -13,7 +13,7 @@ mkdir -p /etc/rancher/k3s/
 
 cat > /etc/rancher/k3s/config.yaml << 'EOF'
 server: "https://192.168.8.7:6443"
-token: "CHANGE-ME-USE-STRONG-RANDOM-TOKEN"
+token: "CHANGE-ME"    # openssl rand -hex 32 — must match pi4-server/kubernetes/config/server.yaml
 EOF
 
 chmod 600 /etc/rancher/k3s/config.yaml
