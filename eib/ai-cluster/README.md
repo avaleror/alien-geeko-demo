@@ -15,17 +15,17 @@ Two-node k3s cluster: Raspberry Pi 4 (server) + NVIDIA Jetson Orin (GPU worker).
 
 **1. Set a shared cluster token**
 
-Generate a strong token and replace `CHANGE-ME-USE-STRONG-RANDOM-TOKEN` in **both** files:
-- `pi4-server/image-definition.yaml` → `kubernetes.clusterToken`
-- `orin-worker/scripts/99-k3s-agent-join.sh` → `token:` field
+Generate a strong token and replace `CHANGE-ME` in **both** files:
+- `pi4-server/kubernetes/config/server.yaml` → `token:`
+- `orin-worker/custom/scripts/99-k3s-agent-join.sh` → `token:`
 
 ```bash
 openssl rand -hex 32
 ```
 
-**2. Set an encrypted password**
+**2. Set encrypted passwords**
 
-Replace `$6$CHANGEME$CHANGEME` in both image-definition.yaml files:
+Replace `CHANGE-ME` in both `image-definition.yaml` files (root and suse-user):
 
 ```bash
 openssl passwd -6 yourpassword
@@ -33,22 +33,24 @@ openssl passwd -6 yourpassword
 
 **3. Add your SSH public key**
 
-Replace `ssh-ed25519 AAAA_CHANGE_ME your-key` in both files with your actual public key:
+Replace `CHANGE-ME` in the `sshKeys` field of both `image-definition.yaml` files:
 
 ```bash
 cat ~/.ssh/id_ed25519.pub
 ```
 
-**4. Verify your gateway IP**
+**4. Add your SCC registration code**
+
+Replace `CHANGE-ME` in the `sccRegistrationCode` field of both `image-definition.yaml` files.
+
+**5. Verify your gateway IP**
 
 Both `network/*.yaml` files assume gateway `192.168.8.1`. Change if different.
 
-**5. Verify the Jetson Orin base image filename**
-
-The Pi 4 image filename is well-established. The Orin filename needs verification:
+**6. Verify the Jetson Orin base image filename**
 
 - Pi 4 base image: `SL-Micro.aarch64-6.2-RaspberryPi-GM.raw`
-- Orin base image: `SL-Micro.aarch64-6.2-Default-GM.raw` (no Jetson-specific image in 6.2)
+- Orin base image: `SL-Micro.aarch64-6.2-Default-GM.raw` (no Jetson-specific image in SL Micro 6.2)
 
 ---
 
@@ -57,27 +59,32 @@ The Pi 4 image filename is well-established. The Orin filename needs verificatio
 ```
 ai-cluster/
 ├── pi4-server/
-│   ├── image-definition.yaml              ← k3s server, Pi 4 base image, Ollama Helm chart
-│   ├── base-images/
-│   │   └── SL-Micro.aarch64-6.2-...-Pi.raw.xz            ← download here
+│   ├── image-definition.yaml              ← k3s server, Pi 4 base image, Helm charts
+│   ├── base-images/                       ← place SL-Micro Pi 4 .raw here
 │   ├── network/
-│   │   └── pi4-server.yaml                ← static IP 192.168.8.7
+│   │   └── pi4-server.yaml               ← DHCP + MAC reservation 192.168.8.7
+│   ├── custom/
+│   │   └── scripts/
+│   │       └── 99-alias.sh               ← k=kubectl alias + KUBECONFIG
 │   └── kubernetes/
+│       ├── config/
+│       │   └── server.yaml               ← CNI (Cilium), selinux, cluster token
 │       ├── manifests/
-│       │   ├── 00-metallb-config.yaml     ← IPAddressPool 192.168.8.9 + L2Advertisement
+│       │   ├── 00-metallb-config.yaml    ← IPAddressPool .9-.10 + L2Advertisement
 │       │   ├── 01-nvidia-runtimeclass.yaml
-│       │   └── 02-nvidia-device-plugin.yaml
+│       │   └── 02-nvidia-device-plugin.yaml  ← pinned to orin-worker
 │       └── helm/
 │           └── values/
-│               └── ollama-values.yaml     ← GPU config, model, LoadBalancer, nodeSelector
+│               ├── ollama-values.yaml    ← GPU, model, nodeSelector orin-worker
+│               └── open-webui-values.yaml ← points to Ollama VIP, nodeSelector pi4-server
 └── orin-worker/
-    ├── image-definition.yaml              ← k3s agent, Jetson base image, NVIDIA stack
-    ├── base-images/
-    │   └── SL-Micro.aarch64-6.1-...-Jetson.raw.xz        ← download here
+    ├── image-definition.yaml             ← k3s agent, aarch64 base image, NVIDIA packages
+    ├── base-images/                      ← place SL-Micro aarch64 .raw here
     ├── network/
-    │   └── orin-worker.yaml               ← static IP 192.168.8.8
-    └── scripts/
-        └── 99-k3s-agent-join.sh           ← k3s agent config + nvidia-ctk containerd setup
+    │   └── orin-worker.yaml              ← DHCP + MAC reservation 192.168.8.8
+    └── custom/
+        └── scripts/
+            └── 99-k3s-agent-join.sh     ← writes k3s agent config (server URL + token)
 ```
 
 ---
@@ -88,7 +95,7 @@ ai-cluster/
 # Pi 4
 cp SL-Micro.aarch64-6.2-RaspberryPi-GM.raw pi4-server/base-images/
 
-# Orin — generic aarch64 image (no Jetson-specific in 6.2)
+# Orin — generic aarch64 (no Jetson-specific image in SL Micro 6.2)
 cp SL-Micro.aarch64-6.2-Default-GM.raw orin-worker/base-images/
 ```
 
@@ -126,7 +133,7 @@ podman run --rm --privileged \
 
 ## Write images to storage
 
-**Pi 4 — write to microSD or USB SSD:**
+**Pi 4 — write to microSD:**
 
 ```bash
 # macOS
@@ -135,13 +142,10 @@ sudo dd if=pi4-server/vessel-ai-pi4-server.raw of=/dev/rdiskN bs=4m status=progr
 diskutil eject /dev/diskN
 ```
 
-**Orin — write to NVMe or eMMC via recovery mode:**
-
-The Jetson Orin uses NVIDIA's `flash.sh` tool to write images via USB.
-Alternatively, use `dd` to a NVMe drive connected externally, then boot from it.
+**Orin — write to 256 GB NVMe (USB enclosure):**
 
 ```bash
-# Linux (Orin NVMe in USB enclosure)
+# Linux
 sudo dd if=orin-worker/vessel-ai-orin-worker.raw of=/dev/sdX bs=4M status=progress && sync
 ```
 
@@ -150,22 +154,26 @@ sudo dd if=orin-worker/vessel-ai-orin-worker.raw of=/dev/sdX bs=4M status=progre
 ## Boot order
 
 1. **Boot Pi 4 first.** Wait for k3s server to come up (~2 min).
-   Watch progress: `ssh suse@192.168.8.7 journalctl -fu k3s`
+   ```bash
+   ssh suse-user@192.168.8.7 journalctl -fu k3s
+   ```
 
 2. **Boot Orin.** It reads `/etc/rancher/k3s/config.yaml` (written by combustion script)
-   and joins the server at 192.168.8.7:6443.
-   Watch: `ssh suse@192.168.8.8 journalctl -fu k3s-agent`
+   and joins the Pi 4 server at 192.168.8.7:6443.
+   ```bash
+   ssh suse-user@192.168.8.8 journalctl -fu k3s-agent
+   ```
 
 3. **Verify cluster from Pi 4:**
    ```bash
-   ssh suse@192.168.8.7
-   sudo k3s kubectl get nodes -o wide
-   # Expect: pi4-server (control-plane) + orin-worker (worker)
+   ssh suse-user@192.168.8.7
+   k get nodes -o wide
+   # Expect: pi4-server (control-plane) + orin-worker (worker), both Ready
    ```
 
 4. **Wait for Ollama.** First boot pulls phi3:mini (~2.3 GB) — takes a few minutes.
    ```bash
-   sudo k3s kubectl get pods -n ollama -w
+   k get pods -n ollama -w
    # Status: Init → Running → Ready
    ```
 
@@ -175,20 +183,23 @@ sudo dd if=orin-worker/vessel-ai-orin-worker.raw of=/dev/sdX bs=4M status=progre
      -d '{"model":"phi3:mini","prompt":"Hello from the NVIDIA Orin!","stream":false}'
    ```
 
+6. **Open WebUI:**
+   ```
+   http://192.168.8.10:8080
+   ```
+
 ---
 
 ## GPU verification
 
-Once the cluster is up, verify GPU is available to k3s:
-
 ```bash
-# On Pi 4 (kubectl access)
-sudo k3s kubectl describe node orin-worker | grep -A5 "Capacity"
+# On Pi 4 — check GPU is advertised as a schedulable resource
+k describe node orin-worker | grep -A5 "Capacity"
 # Should show: nvidia.com/gpu: 1
 
-# Direct GPU check on Orin
-ssh suse@192.168.8.8
-nvidia-smi    # or: tegrastats
+# On Orin — direct GPU check
+ssh suse-user@192.168.8.8
+tegrastats
 ```
 
 ---
@@ -197,31 +208,31 @@ nvidia-smi    # or: tegrastats
 
 **Orin not joining the cluster**
 ```bash
-# On Orin: check the config was written correctly
+# On Orin: verify the config was written correctly
 cat /etc/rancher/k3s/config.yaml
-# Verify: server URL and token match exactly
+# server and token must match pi4-server/kubernetes/config/server.yaml exactly
 
-# Watch agent logs
 journalctl -fu k3s-agent
 ```
 
 **GPU not detected by k3s**
 ```bash
-# Verify nvidia-container-toolkit is installed
-ssh suse@192.168.8.8 rpm -q nvidia-container-toolkit
+# Verify toolkit is installed
+ssh suse-user@192.168.8.8 rpm -q nvidia-container-toolkit
 
-# Check containerd config was updated by toolkit
-cat /var/lib/rancher/k3s/agent/etc/containerd/config.toml | grep nvidia
+# Check k3s containerd picked up the nvidia runtime
+ssh suse-user@192.168.8.8 cat /var/lib/rancher/k3s/agent/etc/containerd/config.toml | grep nvidia
 ```
 
 **Ollama OOM / crash**
-- Reduce the model: edit `03-ollama.yaml` and change `phi3:mini` to `gemma2:2b`
-- Check available memory: `ssh suse@192.168.8.8 free -h`
-- Jetson Orin has unified CPU+GPU memory — reduce `limits.memory` if needed
+- Switch to a smaller model: change `phi3:mini` to `gemma2:2b` in `ollama-values.yaml` and rebuild
+- Check available memory: `ssh suse-user@192.168.8.8 free -h`
+- Reduce `limits.memory` in `ollama-values.yaml` if needed
 
-**MetalLB not assigning VIP**
+**MetalLB not assigning VIPs**
 ```bash
-sudo k3s kubectl get ipaddresspools -n metallb-system
-sudo k3s kubectl get l2advertisements -n metallb-system
-sudo k3s kubectl describe svc ollama -n ollama
+k get ipaddresspools -n metallb-system
+k get l2advertisements -n metallb-system
+k describe svc -n ollama
+k describe svc -n open-webui
 ```
