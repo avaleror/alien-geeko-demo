@@ -15,24 +15,31 @@ image:
   outputImageName: vessel-ai-orin-worker.raw
 
 operatingSystem:
-  hostname: orin-worker
-
-  users:
-    - username: suse
-      encryptedPassword: "$6$CHANGEME$CHANGEME"    # generate: openssl passwd -6 yourpassword
-      uid: 1000
-
-  ssh:
-    enabled: true
-    authorizedKeys:
-      - "ssh-ed25519 AAAA_CHANGE_ME your-key"      # replace with your public key
+  rawConfiguration:
+    diskSize: 64G
 
   time:
     timezone: Europe/Prague
+    ntp:
+      forceWait: true
+      pools:
+        - 2.suse.pool.ntp.org
 
   systemd:
     enable:
       - cockpit.socket
+
+  keymap: us
+
+  users:
+    - username: root
+      encryptedPassword: "CHANGE-ME"    # openssl passwd -6 yourpassword
+      createHomeDir: true
+    - username: suse-user
+      encryptedPassword: "CHANGE-ME"    # openssl passwd -6 yourpassword
+      createHomeDir: true
+      sshKeys:
+        - "CHANGE-ME"                   # cat ~/.ssh/id_rsa.pub or id_ed25519.pub
 
   # ─── NVIDIA AI software stack ────────────────────────────────────────────────
   #
@@ -64,7 +71,7 @@ operatingSystem:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # k3s agent — joins the cluster bootstrapped by pi4-server
-# Token and server address configured via scripts/99-k3s-agent-join.sh
+# Token and server address configured via custom/scripts/99-k3s-agent-join.sh
 # ─────────────────────────────────────────────────────────────────────────────
 kubernetes:
   version: v1.34.2+k3s1
