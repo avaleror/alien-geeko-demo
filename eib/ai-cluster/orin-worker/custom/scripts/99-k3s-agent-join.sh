@@ -1,20 +1,23 @@
 #!/bin/bash
 # Combustion script — runs during first boot, BEFORE k3s starts.
-# Writes the k3s agent config so the Orin joins the Pi 4 server on first start.
+# Configures the k3s-agent systemd service to join the Pi 4 server.
 #
-# ⚠️  CHANGE-ME: token must match pi4-server/kubernetes/config/server.yaml token
+# Equivalent to running:
+#   K3S_TOKEN=SECRET k3s agent --server https://192.168.8.7:6443
+#
+# ⚠️  CHANGE-ME: K3S_TOKEN must match pi4-server/kubernetes/config/server.yaml token
 #
 set -euo pipefail
 
-mkdir -p /etc/rancher/k3s/
+mkdir -p /etc/systemd/system/
 
-cat > /etc/rancher/k3s/config.yaml << 'EOF'
-server: "https://192.168.8.7:6443"
-token: "CHANGE-ME"    # openssl rand -hex 32 — must match pi4-server/kubernetes/config/server.yaml
+cat > /etc/systemd/system/k3s-agent.service.env << 'EOF'
+K3S_TOKEN=CHANGE-ME
+K3S_URL=https://192.168.8.7:6443
 EOF
 
-chmod 600 /etc/rancher/k3s/config.yaml
-echo "[combustion] k3s agent config written — will join https://192.168.8.7:6443"
+chmod 600 /etc/systemd/system/k3s-agent.service.env
+echo "[combustion] k3s-agent env written — will join https://192.168.8.7:6443"
 
 # Verify Tegra GPU is visible on the host
 if [ -c /dev/nvhost-ctrl ]; then
