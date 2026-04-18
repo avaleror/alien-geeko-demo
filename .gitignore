@@ -36,3 +36,4 @@ build/
 *.crt
 id_rsa
 id_ed25519
+CLAUDE.md
