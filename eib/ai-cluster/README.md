@@ -208,9 +208,9 @@ tegrastats
 
 **Orin not joining the cluster**
 ```bash
-# On Orin: verify the env file was written correctly
-cat /etc/systemd/system/k3s-agent.service.env
-# K3S_TOKEN must match pi4-server/kubernetes/config/server.yaml token exactly
+# On Orin: verify the config was written correctly
+cat /etc/rancher/k3s/config.yaml
+# server and token must match pi4-server/kubernetes/config/server.yaml exactly
 
 journalctl -fu k3s-agent
 ```
