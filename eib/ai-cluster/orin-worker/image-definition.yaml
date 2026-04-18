@@ -16,7 +16,7 @@ image:
 
 operatingSystem:
   rawConfiguration:
-    diskSize: 64G
+    diskSize: 256G
 
   time:
     timezone: Europe/Prague
