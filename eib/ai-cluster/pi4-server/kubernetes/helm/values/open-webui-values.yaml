@@ -6,6 +6,13 @@
 ollama:
   enabled: false
 
+# ─── Disable optional subcharts not needed for this demo ─────────────────────
+pipelines:
+  enabled: false
+
+websocket:
+  enabled: false
+
 # ─── Point to our Ollama LoadBalancer VIP ─────────────────────────────────────
 ollamaUrls:
   - "http://192.168.8.9:11434"
@@ -39,7 +46,9 @@ resources:
 
 # ─── Probes — wait for Ollama to be reachable before marking ready ─────────────
 startupProbe:
-  enabled: true
+  httpGet:
+    path: /health
+    port: http
   initialDelaySeconds: 30
   periodSeconds: 10
   failureThreshold: 12

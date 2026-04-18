@@ -54,6 +54,8 @@ persistentVolume:
 service:
   type: LoadBalancer
   port: 11434
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "192.168.8.9"
 
 # ─── Probes — first boot pulls the model, allow extra startup time ────────────
 livenessProbe:

@@ -72,17 +72,15 @@ kubernetes:
         url: https://helm.openwebui.com/
 
     charts:
-      # ⚠️  Verify latest chart version: helm search repo otwld/ollama
       - name: ollama
-        version: "0.74.0"
+        version: "1.54.0"
         repositoryName: otwld
         targetNamespace: ollama
         createNamespace: true
         valuesFile: ollama-values.yaml
 
-      # ⚠️  Verify latest chart version: helm search repo open-webui/open-webui
       - name: open-webui
-        version: "3.3.0"
+        version: "13.3.1"
         repositoryName: open-webui
         targetNamespace: open-webui
         createNamespace: true

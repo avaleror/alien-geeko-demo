@@ -1,4 +1,4 @@
-apiVersion: 1.0
+apiVersion: 1.3
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Vessel AI — NVIDIA Jetson Orin Worker Node
@@ -28,7 +28,11 @@ operatingSystem:
       - "ssh-ed25519 AAAA_CHANGE_ME your-key"      # replace with your public key
 
   time:
-    timezone: UTC
+    timezone: Europe/Prague
+
+  systemd:
+    enable:
+      - cockpit.socket
 
   # ─── NVIDIA AI software stack ────────────────────────────────────────────────
   #
@@ -51,6 +55,7 @@ operatingSystem:
     packageList:
       - nvidia-container-toolkit    # container runtime hook for GPU passthrough
       - libnvidia-container1        # core library dependency of the toolkit
+    sccRegistrationCode: "CHANGE-ME"    # SUSE Customer Center registration code
     additionalRepos:
       # Official NVIDIA Container Toolkit repo — stable RPM build for ARM64
       # This is the authoritative source for Jetson (not the sbsa CUDA repo)
@@ -62,7 +67,7 @@ operatingSystem:
 # Token and server address configured via scripts/99-k3s-agent-join.sh
 # ─────────────────────────────────────────────────────────────────────────────
 kubernetes:
-  version: v1.30.3+k3s1
+  version: v1.34.2+k3s1
 
   nodes:
     - hostname: orin-worker

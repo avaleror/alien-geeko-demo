@@ -1,6 +1,5 @@
 # NVIDIA Device Plugin DaemonSet
-# Runs only on nodes with label: nvidia.com/gpu.present=true
-# This label is set automatically by the plugin on Orin after it detects the GPU.
+# Pinned to orin-worker via nodeSelector — no GPU on Pi 4.
 # For k3s: kubelet socket path differs from vanilla Kubernetes.
 # k3s kubelet dir: /var/lib/rancher/k3s/agent/kubelet/
 ---
@@ -20,15 +19,16 @@ spec:
       labels:
         name: nvidia-device-plugin-ds
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: orin-worker
       tolerations:
-        # Allow scheduling on GPU nodes even if tainted
         - key: nvidia.com/gpu
           operator: Exists
           effect: NoSchedule
       priorityClassName: system-node-critical
       containers:
         - name: nvidia-device-plugin-ctr
-          image: nvcr.io/nvidia/k8s-device-plugin:v0.16.2
+          image: nvcr.io/nvidia/k8s-device-plugin:v0.19.0
           env:
             - name: FAIL_ON_INIT_ERROR
               value: "false"   # prevents crash-loop if GPU not found on non-GPU nodes
