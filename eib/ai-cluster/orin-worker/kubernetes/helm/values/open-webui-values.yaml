@@ -1,0 +1,49 @@
+# Open WebUI Helm values — open-webui/open-webui chart
+# Standalone deployment on Jetson Orin alongside Ollama
+# Accessible at http://192.168.8.8:30080
+
+# ─── Disable bundled Ollama — we deploy our own ──────────────────────────────
+ollama:
+  enabled: false
+
+# ─── Disable optional subcharts not needed for this demo ─────────────────────
+pipelines:
+  enabled: false
+
+websocket:
+  enabled: false
+
+# ─── Point to Ollama via internal cluster DNS ─────────────────────────────────
+ollamaUrls:
+  - "http://ollama.ollama.svc.cluster.local:11434"
+
+# ─── Service — NodePort, accessible at http://192.168.8.8:30080 ──────────────
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30080
+
+# ─── Persistence — stores chat history and user accounts ─────────────────────
+persistence:
+  enabled: true
+  size: 2Gi
+  accessModes:
+    - ReadWriteOnce
+
+# ─── Resources ───────────────────────────────────────────────────────────────
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "1"
+
+# ─── Probes ──────────────────────────────────────────────────────────────────
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 12
