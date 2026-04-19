@@ -66,3 +66,6 @@ extraEnv:
     value: "0"
   - name: OLLAMA_NUM_GPU
     value: "1"
+  # Jetson Orin — enable Flash Attention for faster inference on Tegra architecture
+  - name: OLLAMA_FLASH_ATTENTION
+    value: "1"

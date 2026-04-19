@@ -50,13 +50,18 @@ operatingSystem:
   #
   # LAYER 2 — nvidia-container-toolkit (installed here via EIB packages)
   #   Bridges the host JetPack GPU stack into containers.
-  #   k3s detects it on first start and auto-configures containerd
-  #   to use nvidia-container-runtime. This is what makes
-  #   `nvidia.com/gpu: 1` resource requests work in pods.
+  #   99-nvidia-setup.sh (combustion) runs nvidia-ctk runtime configure
+  #   targeting the k3s containerd config path before k3s first starts.
+  #   This is what makes `nvidia.com/gpu: 1` resource requests work in pods.
   #
   # LAYER 3 — NVIDIA Device Plugin (deployed as DaemonSet via manifest)
   #   Advertises GPU as a schedulable Kubernetes resource.
   #   Defined in kubernetes/manifests/02-nvidia-device-plugin.yaml
+  #
+  # LAYER 4 — Jetson performance mode (systemd service via combustion)
+  #   99-nvidia-setup.sh creates jetson-performance.service which runs
+  #   `nvpmodel -m 0` + `jetson_clocks` at every boot.
+  #   Without this: GPU runs at ~611 MHz. With this: ~1007 MHz (+39%).
   #
   packages:
     packageList:
