@@ -38,10 +38,11 @@ persistentVolume:
   accessModes:
     - ReadWriteOnce
 
-# ─── Service — ClusterIP only, accessed internally by Open WebUI ─────────────
+# ─── Service — NodePort, accessible externally at http://192.168.8.8:30434 ───
 service:
-  type: ClusterIP
+  type: NodePort
   port: 11434
+  nodePort: 30434
 
 # ─── Probes — first boot pulls the model, allow extra startup time ────────────
 livenessProbe:
