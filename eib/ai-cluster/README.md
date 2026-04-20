@@ -4,7 +4,7 @@ Two independent standalone k3s single-node clusters, managed centrally by Ranche
 
 | Node | Hardware | IP | Role |
 |---|---|---|---|
-| rancher-prime | — | 192.168.8.99 | Rancher Prime — central management for the whole demo |
+| rancher-prime | Intel NUC, N150, 16 GB RAM, 512 GB SSD | 192.168.8.99 | Rancher Prime — central management for the whole demo |
 | pi4-server | Raspberry Pi 4, 8 GB | 192.168.8.7 | Standalone k3s — no workloads |
 | orin-server | NVIDIA Jetson Orin, 8 GB | 192.168.8.8 | Standalone k3s + NVIDIA stack + Ollama + Open WebUI |
 | Open WebUI | — | http://192.168.8.8:30080 | Chat UI (NodePort on Orin) |
