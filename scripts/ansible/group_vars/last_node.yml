@@ -1,2 +1,2 @@
-# The last node to shut down is not a k8s node
-k8s_distribution: none
+# Rancher Prime — k3s server, last to shut down so it manages the others until the end
+k8s_distribution: k3s
