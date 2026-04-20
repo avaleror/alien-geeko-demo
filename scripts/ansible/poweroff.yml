@@ -1,0 +1,109 @@
+---
+# Gracefully shut down all cluster nodes.
+# Phase 1 — first_nodes in parallel (Pi4, Orin)
+# Phase 2 — last_node (gateway / management machine)
+#
+# k8s_distribution controls which service is stopped before poweroff:
+#   k3s   → stops k3s (server) or k3s-agent (agent)
+#   rke2  → stops rke2-server or rke2-agent
+#   none  → skip service stop, just power off
+#
+# Node role (server vs agent) is set via k8s_node_role host var (default: server)
+# Override in host_vars/<hostname>.yml if needed.
+
+# ── Phase 1: first nodes (parallel) ──────────────────────────────────────────
+- name: Phase 1 — graceful shutdown of first nodes
+  hosts: first_nodes
+  become: true
+  gather_facts: false
+  strategy: free
+
+  vars:
+    k8s_node_role: server   # override to "agent" per host if needed
+
+  tasks:
+    - name: Resolve k8s service name
+      ansible.builtin.set_fact:
+        k8s_service: >-
+          {{
+            {
+              'k3s':  {'server': 'k3s',          'agent': 'k3s-agent'},
+              'rke2': {'server': 'rke2-server',   'agent': 'rke2-agent'},
+              'none': {'server': '',              'agent': ''}
+            }[k8s_distribution][k8s_node_role]
+          }}
+
+    - name: Stop k8s service
+      ansible.builtin.systemd:
+        name: "{{ k8s_service }}"
+        state: stopped
+      when: k8s_service != ''
+      ignore_errors: true
+
+    - name: Power off
+      ansible.builtin.command: /sbin/poweroff
+      async: 1
+      poll: 0
+      ignore_errors: true
+
+    - name: Wait for SSH to drop
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        state: absent
+        timeout: 120
+        delay: 5
+      delegate_to: localhost
+      become: false
+
+    - name: Confirm down
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} ({{ ansible_host }}) is down."
+
+# ── Phase 2: last node ────────────────────────────────────────────────────────
+- name: Phase 2 — graceful shutdown of last node
+  hosts: last_node
+  become: true
+  gather_facts: false
+
+  vars:
+    k8s_node_role: server
+
+  tasks:
+    - name: Resolve k8s service name
+      ansible.builtin.set_fact:
+        k8s_service: >-
+          {{
+            {
+              'k3s':  {'server': 'k3s',          'agent': 'k3s-agent'},
+              'rke2': {'server': 'rke2-server',   'agent': 'rke2-agent'},
+              'none': {'server': '',              'agent': ''}
+            }[k8s_distribution][k8s_node_role]
+          }}
+
+    - name: Stop k8s service
+      ansible.builtin.systemd:
+        name: "{{ k8s_service }}"
+        state: stopped
+      when: k8s_service != ''
+      ignore_errors: true
+
+    - name: Power off
+      ansible.builtin.command: /sbin/poweroff
+      async: 1
+      poll: 0
+      ignore_errors: true
+
+    - name: Wait for SSH to drop
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        state: absent
+        timeout: 120
+        delay: 5
+      delegate_to: localhost
+      become: false
+
+    - name: Confirm down
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} ({{ ansible_host }}) is down."

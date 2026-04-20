@@ -1,0 +1,7 @@
+# Default SSH user for all nodes
+ansible_user: suse-user
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ConnectTimeout=10"
+
+# Kubernetes distribution: k3s | rke2 | none
+# Override per host in host_vars/ if nodes use different distributions
+k8s_distribution: k3s
