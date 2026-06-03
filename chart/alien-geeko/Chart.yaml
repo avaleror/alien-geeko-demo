@@ -1,0 +1,17 @@
+apiVersion: v2
+name: alien-geeko
+description: SUSE Edge demo — Nostromo terminal showing live Kubernetes cluster vitals
+type: application
+version: 0.1.0
+appVersion: "latest"
+home: https://github.com/avaleror/alien-geeko-demo
+sources:
+  - https://github.com/avaleror/alien-geeko-demo
+maintainers:
+  - name: Andres Valero
+    email: anvarui@gmail.com
+keywords:
+  - suse
+  - edge
+  - kubernetes
+  - demo
