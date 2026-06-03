@@ -1,9 +1,0 @@
-# Base images — large raw files, download locally before building
-**/base-images/*.raw
-**/base-images/*.raw.xz
-**/base-images/*.iso
-
-# Local overrides with real credentials — never commit these
-*.local.yaml
-*.local.sh
-secrets/

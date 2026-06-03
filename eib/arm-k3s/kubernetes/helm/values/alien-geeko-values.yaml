@@ -1,0 +1,14 @@
+clusterName: "CLUSTER-ARM64"
+
+# topologySpread spreads replicas across arch zones.
+# On a single-node cluster this is a no-op but safe to leave enabled.
+topologySpread:
+  enabled: true
+  maxSkew: 1
+  whenUnsatisfiable: DoNotSchedule
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 3000
+  nodePort: 30080

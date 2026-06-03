@@ -1,0 +1,41 @@
+# Display name shown in the Nostromo terminal UI.
+# Override per cluster in Fleet targets or with --set clusterName=MY-CLUSTER.
+clusterName: "EDGE-CLUSTER"
+
+image:
+  repository: docker.io/avaleror/alien-geeko
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  # NodePort is the default for bare-metal edge clusters without MetalLB.
+  # Set type: LoadBalancer and add metallb.universe.tf/address-pool annotation
+  # for clusters running MetalLB.
+  type: NodePort
+  port: 80
+  targetPort: 3000
+  nodePort: 30080
+  annotations: {}
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+
+# Tolerate control-plane taint so the app can run on single-node clusters.
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
+# Spread replicas across CPU architectures when multiple nodes are present.
+# Disable on single-node clusters (whenUnsatisfiable: DoNotSchedule will block scheduling).
+topologySpread:
+  enabled: true
+  maxSkew: 1
+  whenUnsatisfiable: DoNotSchedule
