@@ -41,3 +41,15 @@ kubernetes:
     - hostname: vessel-arm
       initializer: true
       type: server
+  helm:
+    charts:
+      - name: alien-geeko
+        version: 0.1.0
+        repositoryName: alien-geeko
+        targetNamespace: alien-geeko
+        createNamespace: true
+        installationNamespace: kube-system
+        valuesFile: alien-geeko-values.yaml
+    repositories:
+      - name: alien-geeko
+        url: https://avaleror.github.io/alien-geeko-demo
