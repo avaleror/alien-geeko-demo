@@ -475,8 +475,9 @@
         token, the K8s API, and a 60-second cache to go easy on the Pi.
       </p>
       <p>
-        The same container image runs on amd64 and arm64. Fleet picks the right overlay per cluster
-        via Kustomize — the only thing that changes is the cluster display name in the UI.
+        The same container image runs on amd64 and arm64. A Helm chart handles the full deployment —
+        namespace, RBAC, deployment, service. Fleet sets the cluster display name per target via
+        Helm values. No Kustomize patches needed.
       </p>
 
       <div class="terminal">
@@ -514,7 +515,7 @@
         <span class="tag teal">k3s</span>
         <span class="tag teal">RKE2</span>
         <span class="tag teal">Kubernetes</span>
-        <span class="tag teal">Kustomize</span>
+        <span class="tag teal">Helm</span>
         <span class="tag">Node.js</span>
         <span class="tag">Raspberry Pi 4</span>
         <span class="tag">Raspberry Pi 5</span>
@@ -528,22 +529,30 @@
     <div class="container">
       <p class="section-label">// Deployment</p>
       <h3>Deploy to Your Fleet</h3>
-      <p>Clone the repo, label your clusters in Rancher, add the GitRepo. Fleet does the rest.</p>
+      <p>Install via Helm directly, or let Fleet manage the full fleet lifecycle — both paths use the same chart.</p>
 
       <div class="terminal">
-        <pre><span class="comment"># 1. Add the GitRepo in Rancher</span>
+        <pre><span class="comment"># Option A — standalone Helm install</span>
+<span class="cmd">helm repo add alien-geeko https://avaleror.github.io/alien-geeko-demo
+helm repo update
+helm install alien-geeko alien-geeko/alien-geeko \
+  --namespace alien-geeko \
+  --create-namespace \
+  --set clusterName=MY-CLUSTER</span>
+
+<span class="comment"># Option B — Fleet GitOps (clusterName set per target in fleet.yaml)</span>
 <span class="cmd">Continuous Delivery > Git Repos > Add Repository
 URL:    https://github.com/avaleror/alien-geeko-demo
 Branch: main</span>
 
-<span class="comment"># 2. Label your clusters</span>
-<span class="cmd">demo=true  +  edge-type=pi-cluster       → Vessel Alpha overlay
-demo=true  +  edge-type=x86-elemental    → Vessel Beta overlay
-demo=true  +  edge-type=pi5-k3s         → Delta-k3s overlay
-demo=true  +  edge-type=pi5-rke2        → Delta-RKE2 overlay
-demo=true  +  edge-type=x86-cluster     → Mission Control overlay</span>
+<span class="comment"># Label your clusters so Fleet routes to the right values</span>
+<span class="cmd">demo=true  +  edge-type=pi-cluster       → clusterName: PI-CLUSTER-ARM64
+demo=true  +  edge-type=x86-elemental    → clusterName: VESSEL-BETA-ELEMENTAL
+demo=true  +  edge-type=pi5-k3s         → clusterName: VESSEL-DELTA-K3S
+demo=true  +  edge-type=pi5-rke2        → clusterName: VESSEL-DELTA-RKE2
+demo=true  +  edge-type=x86-cluster     → clusterName: X86-EDGE-NODE</span>
 
-<span class="comment"># 3. Verify</span>
+<span class="comment"># Verify</span>
 <span class="cmd">kubectl auth can-i list nodes \
   --as=system:serviceaccount:alien-geeko:alien-geeko</span>
 <span class="out">yes</span><span class="cursor"></span></pre>
