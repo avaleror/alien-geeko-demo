@@ -14,7 +14,7 @@ interfaces:
   - name: eth0
     type: ethernet
     state: up
-    mac-address: CHANGE-ME   # Pi 4 MAC — ip link show eth0
+    mac-address: CHANGE-ME
     ipv4:
       dhcp: true
       enabled: true

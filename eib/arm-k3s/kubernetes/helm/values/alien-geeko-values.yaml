@@ -1,4 +1,4 @@
-clusterName: "PI-CLUSTER-ARM64"
+clusterName: "CLUSTER-ARM64"
 
 # topologySpread spreads replicas across arch zones.
 # On a single-node cluster this is a no-op but safe to leave enabled.
