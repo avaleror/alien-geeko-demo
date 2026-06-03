@@ -1,0 +1,22 @@
+routes:
+  config:
+    - destination: 0.0.0.0/0
+      metric: 100
+      next-hop-address: CHANGE-ME   # your gateway IP e.g. 192.168.1.1
+      next-hop-interface: eth0
+      table-id: 254
+dns-resolver:
+  config:
+    server:
+      - CHANGE-ME   # your gateway/DNS IP
+      - 8.8.8.8
+interfaces:
+  - name: eth0
+    type: ethernet
+    state: up
+    mac-address: CHANGE-ME   # Pi 4 MAC — ip link show eth0
+    ipv4:
+      dhcp: true
+      enabled: true
+    ipv6:
+      enabled: false
